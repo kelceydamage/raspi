@@ -18,7 +18,12 @@ tasks
 ```
 
 ### Relationships
-```bash
+```bash                              
+                               sub_routines 
+                                    | ________ analysis
+                                    |/   
+                                    | ________ motor_drive
+                                    |/
                                   tasks
                                     |
                                     | ________ data_store
