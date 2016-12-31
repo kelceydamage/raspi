@@ -11,6 +11,17 @@ Task Engine operates on port `9999`. This will be configurable but is recommende
 ## Mesage Specification v0.1
 Below are the initial specifications for structuring messages. These are subject to revision.
 
+### REPL Message format [JSON]
+```bash
+{
+	"meta": {
+		"source": <hostname>,
+		"cname": <system-identifier>,
+		"version": <source-version>
+	}
+}
+```
+
 ### TASK Message format [JSON]
 ```bash
 {
