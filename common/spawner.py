@@ -103,7 +103,7 @@ REQUIRES:       status [output of self.spawn]
             else:
                 print('Sucessfully terminated process [{0}]: {1}'.format(
                     process[1],
-                    process[2]
+                    process[2][0]
                     ))
 
 class ProcessHandler(ProcessSpawner):

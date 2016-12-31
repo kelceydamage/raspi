@@ -20,9 +20,9 @@ Starting worker[DATA] on socket: 127.0.0.1:10002
 Hitting `ctrl-c` or sending SIGTERM should generate an output similar to below.
 ```bash
 Closing application and stopping services...
-Sucessfully terminated process [7758]: [<function start_worker at 0x76685a70>, ['127.0.0.1', 10000, {'count': <function count at 0x76a41770>}, 0]]
-Sucessfully terminated process [7759]: [<function start_worker at 0x76685a70>, ['127.0.0.1', 10001, {'count': <function count at 0x76a41770>}, 0]]
-Sucessfully terminated process [7760]: [<function start_worker at 0x76685a70>, ['127.0.0.1', 10002, {'count': <function count at 0x76a41770>}, 1]]
+Sucessfully terminated process [7758]: <function start_worker at 0x76685a70>
+Sucessfully terminated process [7759]: <function start_worker at 0x76685a70>
+Sucessfully terminated process [7760]: <function start_worker at 0x76685a70>
 ```
 
 ## Interaction v0.1
