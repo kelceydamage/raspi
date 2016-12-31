@@ -75,8 +75,8 @@ pyzmq
 ```
 
 ## Interaction Specification v0.1
-| Service | Port |
-|---------|------|
-|task_engine|9999|
+| Service | Port | Notes |
+|---------|------|-------|
+|task_engine: workers|10000 - #####| task_engine will assign a sequencial port to all worker types requested in the configuration file. |
 
 ### More to follow....
