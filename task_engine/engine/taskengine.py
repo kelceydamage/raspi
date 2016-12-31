@@ -87,20 +87,6 @@ REQUIRES:       task object [dict]
 
 # Functions
 #-------------------------------------------------------------------------------- <-80
-def task_queue(task):
-    """
-NAME:           queue
-DESCRIPTION:    Return the result of running the task with the given 
-                arguments.
-REQUIRES:       task object [dict]
-                - name
-                - args
-                - kwargs
-    """
-    task = json.dumps(task)
-    TASK_SOCKET.send_pyobj(task)
-    results = TASK_SOCKET.recv_pyobj()
-    return results
 
 # Main
 #-------------------------------------------------------------------------------- <-80

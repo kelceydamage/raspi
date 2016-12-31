@@ -21,18 +21,37 @@
 # Imports
 #-------------------------------------------------------------------------------- <-80
 from __future__ import print_function
-from engine.taskengine import task_queue
 import requests
 import time
+import zmq
+import json
 
 # Globals
 #-------------------------------------------------------------------------------- <-80
+HOST = '127.0.0.1'
+PORT = 9999
+TASK_SOCKET = zmq.Context().socket(zmq.REQ)
+TASK_SOCKET.connect('tcp://{}:{}'.format(HOST, PORT))
 
 # Classes
 #-------------------------------------------------------------------------------- <-80
 
 # Functions
 #-------------------------------------------------------------------------------- <-80
+def task_queue(task):
+    """
+NAME:           queue
+DESCRIPTION:    Return the result of running the task with the given 
+                arguments.
+REQUIRES:       task object [dict]
+                - name
+                - args
+                - kwargs
+    """
+    task = json.dumps(task)
+    TASK_SOCKET.send_pyobj(task)
+    results = TASK_SOCKET.recv_pyobj()
+    return results
 
 # Main
 #-------------------------------------------------------------------------------- <-80
