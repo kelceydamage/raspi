@@ -78,10 +78,10 @@ DESCRIPTION:    Start the requested service.
 REQUIRES:       services [list of functions]
     """
             pid = os.getpid()
-            print('Starting process [{0}]: {1}'.format(pid, service))
+            print('Starting process [{0}]: {1}'.format(pid, service[0]))
             reply = ['success', pid, service]
             self.q.put(reply)
-            service()
+            service[0](service[1])
 
         for service in services:
             p = processing_object.new_process(
@@ -114,6 +114,7 @@ DESCRIPTION:    Handles the safe exit and cleanup of spawning multiple processes
     def __init__(self, services):
         super(ProcessHandler, self).__init__()
         self.services = services
+        signal.signal(signal.SIGINT, self.ctrl_c)
 
     def start(self):
         """
@@ -122,7 +123,6 @@ DESCRIPTION:    Starts the given services using ProcessSpawner and collects the 
 REQUIRES:       services [list of functions]
         """
         self.spawn(self.services)
-        signal.signal(signal.SIGINT, self.ctrl_c)
 
     def ctrl_c(self, signal, frame):
         """

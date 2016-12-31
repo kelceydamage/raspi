@@ -22,13 +22,12 @@
 #-------------------------------------------------------------------------------- <-80
 from __future__ import print_function
 from registry.registry import functions
-from engine.workers import TaskWorker
+from engine.workers import TaskWorker, DataWorker
 #from engine.routers import Router
 from conf.configuration import *
 import os
 os.sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from common.spawner import ProcessHandler
-import time
 
 # Globals
 #-------------------------------------------------------------------------------- <-80
@@ -38,19 +37,36 @@ import time
 
 # Functions
 #-------------------------------------------------------------------------------- <-80
-def test():
-    while True:
-        time.sleep(1)
+def start_worker(args):
+    """
+NAME:           start_worker
+DESCRIPTION:    Wrapper for starting worker class instances with ProcessHandler
+    """
+    if args[-1] == 0:
+        print('Starting worker[TASK] on socket: {0}:{1}'.format(args[0], args[1]))
+        TaskWorker(host=args[0], port=args[1], functions=args[2]).start()
+    elif args[-1] == 1:
+        print('Starting worker[DATA] on socket: {0}:{1}'.format(args[0], args[1]))
+        DataWorker(host=args[0], port=args[1]).start()
+
+def gen_services():
+    """
+NAME:           gen_services
+DESCRIPTION:    Populates the SERVICES list for ProcessHandler
+    """
+    SERVICES = []
+    port = STARTING_PORT
+    for i in range(TASK_WORKERS):
+        SERVICES.append([start_worker, [HOST, port, functions, 0]])
+        port += 1
+    for i in range(DATA_WORKERS):
+        SERVICES.append([start_worker, [HOST, port, functions, 1]])
+        port += 1
+    return SERVICES
 
 # Main
 #-------------------------------------------------------------------------------- <-80
 if __name__ == '__main__':
-    #w = TaskWorker(HOST, PORT)
-    #w.functions = functions
-    #w.start()
-    services = [
-        test,
-        test
-    ]
-    PH = ProcessHandler(services)
+    SERVICES = gen_services()
+    PH = ProcessHandler(SERVICES)
     PH.start()

@@ -27,8 +27,8 @@
 # Globals
 #-------------------------------------------------------------------------------- <-80
 HOST = '127.0.0.1'
-PORT = 9999
-TASK_WORKERS = 1
+STARTING_PORT = 10000
+TASK_WORKERS = 2
 DATA_WORKERS = 1
 
 # Classes

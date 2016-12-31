@@ -39,7 +39,7 @@ NAME:           Worker
 DESCRIPTION:    A remote task executor.
     """
 
-    def __init__(self, host, port):
+    def __init__(self, host, port, functions=''):
         super(Worker, self).__init__()
         """
 NAME:           __init__
@@ -60,6 +60,7 @@ DESCRIPTION:    Start listening for tasks.
             self.host, 
             self.port
             ))
+        print('[WORKER-{0}({1})] Listener online'.format(self.port, self.type))
         while True:
             task = self._socket.recv_pyobj()
             response = self.run_task(task)
@@ -71,13 +72,15 @@ NAME:           TaskWorker
 DESCRIPTION:    A remote parallel task executor. Child of Worker.
     """
 
-    def __init__(self, host, port):
+    def __init__(self, host, port, functions):
         super(TaskWorker, self).__init__(host, port)
         """
 NAME:           __init__
 DESCRIPTION:    Initialize worker.
         """
         self._socket = self._context.socket(zmq.REP)
+        self.functions = functions
+        self.type = 'TASK'
 
     def run_task(self, task):
         """
@@ -101,12 +104,13 @@ DESCRIPTION:    A remote data subscriber. Child of Worker.
     """
 
     def __init__(self, host, port):
-        super(DataWorker, self).__init__()
+        super(DataWorker, self).__init__(host, port)
         """
 NAME:           __init__
 DESCRIPTION:    Initialize worker.
         """
         self._socket = self._context.socket(zmq.SUB)
+        self.type = 'DATA'
 
     def run_task(self, task):
         pass
