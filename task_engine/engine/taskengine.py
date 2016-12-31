@@ -18,7 +18,7 @@
 # Doc
 #-------------------------------------------------------------------------------- <-80
 """
-SUMMARY:        Broker-less distributed task queue.
+SUMMARY:        Broker-less distributed task workers.
 """
 
 # Imports
@@ -68,9 +68,22 @@ DESCRIPTION:    Start listening for tasks.
             response = self.run_task(task)
             self._socket.send_pyobj(response)
 
+class TaskWorker(Worker):
+    """
+NAME:           TaskWorker
+DESCRIPTION:    A remote parallel task executor. Child of Worker.
+    """
+
+    def __init__(self, host=HOST, port=PORT):
+        super(TaskWorker, self).__init__()
+        """
+NAME:           __init__
+DESCRIPTION:    Initialize worker.
+        """
+
     def run_task(self, task):
         """
-NAME:           _do_work
+NAME:           run_task
 DESCRIPTION:    Return the result of executing the given task
 REQUIRES:       task object [dict]
                 - name
@@ -83,11 +96,27 @@ REQUIRES:       task object [dict]
         kwargs = task['kwargs']
         return self.functions[name](*args, **kwargs)
 
+class DataWorker(Worker):
+    """
+NAME:           DataWorker
+DESCRIPTION:    A remote data subscriber. Child of Worker.
+    """
+
+    def __init__(self, host=HOST, port=PORT):
+        super(DataWorker, self).__init__()
+        """
+NAME:           __init__
+DESCRIPTION:    Initialize worker.
+        """
+
+    def run_task(self, task):
+        pass
+
 # Functions
 #-------------------------------------------------------------------------------- <-80
 
 # Main
 #-------------------------------------------------------------------------------- <-80
 if __name__ == '__main__':
-    w = Worker()
+    w = TaskWorker()
     w.start()

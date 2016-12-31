@@ -21,7 +21,7 @@
 # Imports
 #-------------------------------------------------------------------------------- <-80
 from registry.registry import functions
-from engine.taskengine import Worker
+from engine.taskengine import TaskWorker
 
 # Globals
 #-------------------------------------------------------------------------------- <-80
@@ -35,6 +35,6 @@ from engine.taskengine import Worker
 # Main
 #-------------------------------------------------------------------------------- <-80
 if __name__ == '__main__':
-    w = Worker()
+    w = TaskWorker()
     w.functions = functions
     w.start()
