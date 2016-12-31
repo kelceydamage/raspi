@@ -75,6 +75,8 @@ pyzmq
 ```
 
 ## Interaction Specification v0.1
-* Task Engine:          `PORT: 9999`
+| Service | Port |
+|---------|------|
+|task_engine|9999|
 
 ### More to follow....
