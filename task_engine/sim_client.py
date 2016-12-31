@@ -29,7 +29,7 @@ import json
 # Globals
 #-------------------------------------------------------------------------------- <-80
 HOST = '127.0.0.1'
-PORT = 9999
+PORT = 9000
 TASK_SOCKET = zmq.Context().socket(zmq.REQ)
 TASK_SOCKET.connect('tcp://{}:{}'.format(HOST, PORT))
 
@@ -38,7 +38,7 @@ TASK_SOCKET.connect('tcp://{}:{}'.format(HOST, PORT))
 
 # Functions
 #-------------------------------------------------------------------------------- <-80
-def task_queue(task):
+def task_queue(task, meta):
     """
 NAME:           queue
 DESCRIPTION:    Return the result of running the task with the given 
@@ -49,8 +49,9 @@ REQUIRES:       task object [dict]
                 - kwargs
     """
     task = json.dumps(task)
-    TASK_SOCKET.send_pyobj(task)
-    results = TASK_SOCKET.recv_pyobj()
+    meta = json.dumps(meta)
+    TASK_SOCKET.send_multipart([task, meta])
+    results = TASK_SOCKET.recv_multipart()
     return results
 
 # Main
@@ -62,9 +63,10 @@ task_request = {
     'kwargs': {}
     }
 
-for i in range(0, 10000):
-	result = task_queue(task_request)
+for i in range(0, 1):
+	result = task_queue(task_request, {'requestor': 111})
 
+print(result)
 end = time.time() - start
 print('running {0} samples, took: {2}'.format(
 	10000,

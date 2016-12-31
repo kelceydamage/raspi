@@ -28,6 +28,7 @@ import sys
 import os
 import zmq
 import time
+import json
 
 # Globals
 #-------------------------------------------------------------------------------- <-80
@@ -85,15 +86,17 @@ DESCRIPTION:
         """
         while True:
             print('loop')
+            socks = {}
             for sock in self.poller.poll():
-                yield sock
-            sock = dict(sock)
+                socks[sock[0]] = sock[1]
+            
             if socks.get(self.frontend) == zmq.POLLIN:
-                for message in self.frontend.recv_multipart():
-                    yield message
-                print('received from frontend: {}'.format(message))
-                for part in backend.send_multipart(message):
-                    yield part
+                m = [x for x in self.frontend.recv_multipart()]
+                print('received from frontend: {}'.format(m))
+                meta = json.dumps({'responder': 222})
+                self.frontend.send_multipart(m)
+                
+            """    
             if sock.get(backend) == zmq.POLLIN:
                 for message in backend.recv_multipart():
                     yield message
@@ -101,6 +104,7 @@ DESCRIPTION:
                 for part in frontend.send_multipart(message):
                     yield part
             time.sleep(1)
+            """
 
     def start(self):
         """
