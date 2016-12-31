@@ -44,28 +44,29 @@ monitoring:         Data-visualization page for observing application.
 
 ### Relationships
 ```bash                              
-                               sub_routines 
-                                    | ________ analysis
-                                    |/   
-                                    | ________ motor_drive
-                                    |/
-                                  tasks
-                                    |
-                                    | ________ data_store
-                                    |/
-ai _____> task_operator _____> task_engine [a] <_____ data_collector [Sensors]
-                                   ||   
-                                   ||
-                                hive_link
-                                   ||
-                                   ||
-                               task_engine [b, ...]
-
-
-
-touch_screen ______> touch_ui
-
-browser ______> monitoring
+                                               sub_routines 
+                                                    | ________ analysis
+                                                    |/   
+                                                    | ________ motor_drive
+                                                    |/
+                                               tasks (code_modules)
+                                                    |
+                                                    | ________ data_store
+                                                    |/
+                ai _____> task_operator _____> task_engine [a] <_____ data_collector [Sensors]
+                               /|                  ||   
+                              / |                  ||
+                             /  |              hive_link
+                            /   |                  ||
+                           /    |                  ||
+                          /     |              task_engine [b, ...]
+touch_screen ______> touch_ui   |
+                                |
+                                |
+                                |                 
+                                |
+                                | 
+            browser ______> monitoring
 ```
 
 ### Non-Core Libraries 
