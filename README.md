@@ -9,6 +9,7 @@ The goal of the `Raspi` platform is to create an extensable, scalable, hardware 
 * Each component of `Raspi` should be self contained and plug-in replaceable/extensible. For lack or a better term, isolated/containerized.
 * Optimization should be on memory footprint
 * Performance goal is 1.5x operational speed requirements, 1 second allowance for task response-time
+* Python based for easy IO interaction with hardware components
 
 ### Contents
 Currently contains:
@@ -65,4 +66,10 @@ touch_screen ______> touch_ui
 
 browser ______> monitoring
 ```
+
+### Non-Core Libraries 
+```bash
+pyzmq
+```
+
 ### More to follow....
