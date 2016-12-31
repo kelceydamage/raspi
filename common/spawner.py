@@ -122,6 +122,7 @@ NAME:           start
 DESCRIPTION:    Starts the given services using ProcessSpawner and collects the PIDs
 REQUIRES:       services [list of functions]
         """
+        print('### Type [ctrl-c] to exit and shutdown workers ###')
         self.spawn(self.services)
 
     def ctrl_c(self, signal, frame):
