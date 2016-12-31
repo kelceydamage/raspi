@@ -5,6 +5,8 @@ Task Engine is a light-weight secure task-queuing system for Raspberry Pi robots
 To test Task Engine simply run the `start_engine.py` utility.
 
 Run the sim_client to have Task Engine complete 10,000 sums.
+## Interaction v0.1
+Task Engine operates on port `9999`. This will be configurable but is recommended as specification.
 
 ## Mesage Specification v0.1
 Below are the initial specifications for structuring messages. These are subject to revision.
