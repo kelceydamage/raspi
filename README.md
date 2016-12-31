@@ -8,27 +8,27 @@ The initial hardware platform is Pi3 + MegaPi industrial IO.
 ### Contents
 Currently contains:
 ```bash
-task_engine:    Based on ZMQ, the primary orchestrator for handly both REQ => REP for
-                task automation, and PUB => SUB for sensor data retrieval.
+task_engine:        Based on ZMQ, the primary orchestrator for handly both REQ => REP for
+                    task automation, and PUB => SUB for sensor data retrieval.
 ```
 
 In progress:
 ```bash
-data_collector: Micro daemon collective for streaming sensor data to task_engine 
-                subscribers.
+data_collector:     Micro daemon collective for streaming sensor data to task_engine 
+                    subscribers.
 
-data_store:     Light-weight storage system for state samples and subscriber for 
-                task_engine publishers.
+data_store:         Light-weight storage system for state samples and subscriber for 
+                    task_engine publishers.
 
-hive_link:      Interlink service to share state and operations between task_engines.
+hive_link:          Interlink service to share state and operations between task_engines.
 
-task_operator:  Requestor for task execution, and interface for AI or remote-ops to
-                request task execution.
+task_operator:      Requestor for task execution, and interface for AI or remote-ops to
+                    request task execution.
 
-ai:             High-level controller of sub_routines, such as pathfinding, and servo 
-                feedback control. Primary client for task_operator.
+ai:                 High-level controller of sub_routines, such as pathfinding, and servo 
+                    feedback control. Primary client for task_operator.
 
-tasks:          Library of registered tasks, or system capabilities.
+tasks:              Library of registered tasks, or system capabilities.
 ```
 
 ### Relationships
