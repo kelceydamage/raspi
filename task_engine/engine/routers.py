@@ -23,10 +23,11 @@
 
 # Imports
 #-------------------------------------------------------------------------------- <-80
+from __future__ import print_function
 import sys
+import os
 import zmq
-from zmq.asyncio import Context, Poller, ZMQEventLoop
-import asyncio
+import time
 
 # Globals
 #-------------------------------------------------------------------------------- <-80
@@ -34,71 +35,80 @@ import asyncio
 # Classes
 #-------------------------------------------------------------------------------- <-80
 class Router(object):
-	"""
-NAME: 			Router
-DESCRIPTION: 	Routes messages to available workers.
-	"""
-	def __init__(self):
-		super(Router, self).__init__()
-		context = Context()
-		self.frontend = context.socket(zmq.ROUTER)
-		self.backend = context.socket(zmq.DEALER)
-		self.poller = Poller()
+    """
+NAME:           Router
+DESCRIPTION:    Routes messages to available workers.
+    """
+    def __init__(self):
+        super(Router, self).__init__()
+        context = zmq.Context()
+        self.frontend = context.socket(zmq.ROUTER)
+        self.backend = context.socket(zmq.DEALER)
+        self.poller = zmq.Poller()
 
-	def setup_frontend(self, host, port, proto='tcp'):
-		"""
-NAME: 			setup_frontend
-DESCRIPTION: 	Configure the frontend socket
+    def setup_frontend(self, host, port, proto='tcp'):
+        """
+NAME:           setup_frontend
+DESCRIPTION:    Configure the frontend socket
 REQUIRES:       host [ip/hostname]
                 port [numeric port]
                 proto [protocol: tcp, ipc,...]
-		"""
-		self.frontend.bind('{2}://{0}:{1}'.format(
+        """
+        self.frontend.bind('{2}://{0}:{1}'.format(
             host, 
             port,
             proto
             ))
-		self.poller.register(self.frontend, zmq.POLLIN)
+        self.poller.register(self.frontend, zmq.POLLIN)
+        print('[ROUTER-{0}(FRONTEND)] Listener online'.format(port))
 
-	def setup_backend(self, host, port, proto='tcp'):
-		"""
-NAME:			setup_backend
-DESCRIPTION: 	Configure the frontend socket
+    def setup_backend(self, host, port, proto='tcp'):
+        """
+NAME:           setup_backend
+DESCRIPTION:    Configure the frontend socket
 REQUIRES:       host [ip/hostname]
                 port [numeric port]
                 proto [protocol: tcp, ipc,...]
-		"""
-		self.backend.bind('{2}://{0}:{1}'.format(
+        """
+        self.backend.bind('{2}://{0}:{1}'.format(
             host, 
             port,
             proto
             ))
-		self.poller.register(self.backend, zmq.POLLIN)
+        self.poller.register(self.backend, zmq.POLLIN)
+        print('[ROUTER-{0}(BACKEND)] Listener online'.format(port))
 
-	def run_broker(self):
-		"""
+    def run_broker(self):
+        """
 NAME:
 DESCRIPTION:
-		"""
-		while True:
-			socks = yield from self.poller.poll()
-			socks = dict(socks)
-			if socks.get(self.frontend) == zmq.POLLIN:
-				message = yield from self.frontend.recv_multipart()
-				print('received from frontend: {}'.format(message))
-	            yield from backend.send_multipart(message)
-	        if socks.get(backend) == zmq.POLLIN:
-	            message = yield from backend.recv_multipart()
-	            print('received from backend: {}'.format(message))
-	            yield from frontend.send_multipart(message)
+        """
+        while True:
+            print('loop')
+            for sock in self.poller.poll():
+                yield sock
+            sock = dict(sock)
+            if socks.get(self.frontend) == zmq.POLLIN:
+                for message in self.frontend.recv_multipart():
+                    yield message
+                print('received from frontend: {}'.format(message))
+                for part in backend.send_multipart(message):
+                    yield part
+            if sock.get(backend) == zmq.POLLIN:
+                for message in backend.recv_multipart():
+                    yield message
+                print('received from backend: {}'.format(message))
+                for part in frontend.send_multipart(message):
+                    yield part
+            time.sleep(1)
 
-	def start(self):
-		"""
+    def start(self):
+        """
 NAME:
 DESCRIPTION:
-		"""
-		yield from self.run_broker()
-
+        """
+        print('[ROUTER-MASTER] Routing started')
+        self.run_broker()
 
 # Functions
 #-------------------------------------------------------------------------------- <-80
@@ -106,4 +116,7 @@ DESCRIPTION:
 # Main
 #-------------------------------------------------------------------------------- <-80
 if __name__ == '__main__':
-	pass
+    R = Router()
+    R.setup_frontend('127.0.0.1', 9000)
+    R.setup_backend('127.0.0.1', 9001)
+    R.start()

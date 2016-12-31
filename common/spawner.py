@@ -77,11 +77,15 @@ NAME:           start
 DESCRIPTION:    Start the requested service.
 REQUIRES:       services [list of functions]
     """
-            pid = os.getpid()
-            print('Starting process [{0}]: {1}'.format(pid, service[0]))
-            reply = ['success', pid, service]
-            self.q.put(reply)
-            service[0](service[1])
+            try:
+                pid = os.getpid()
+                print('Starting process [{0}]: {1}'.format(pid, service[0]))
+                reply = ['success', pid, service] 
+                self.q.put(reply)
+                service[0](service[1])
+            except Exception as e:
+                reply = ['FAIL: {0}'.format(e), pid, service] 
+                self.q.put(reply)
 
         for service in services:
             p = processing_object.new_process(
