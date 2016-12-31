@@ -7,6 +7,7 @@ The goal of the `Raspi` platform is to create an extensable, scalable, hardware 
 * The initial hardware platform is Pi3 + MegaPi industrial IO.
 * ARMv7 Processor rev 4 (v7l)
 * Each component of `Raspi` should be self contained and plug-in replaceable/extensible. For lack or a better term, isolated/containerized.
+* intercommunication message serialization to start off as JSON, but will move to msgpack if necessary.
 * Optimization should be on memory footprint
 * Performance goal is 1.5x operational speed requirements, 1 second allowance for task response-time
 * Python based for easy IO interaction with hardware components
