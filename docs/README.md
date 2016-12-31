@@ -12,15 +12,15 @@ The goal of the `Raspi` platform is to create an extensable, scalable, hardware 
 * Performance goal is 1.5x operational speed requirements, 1 second allowance for task response-time
 * Python based for easy IO interaction with hardware components
 
-### Contents
-####Currently contains:
+## Contents
+###Currently contains:
 
 ```bash
 task_engine:        Based on ZMQ, the primary orchestrator for handling both REQ => REP for
                     task automation, and PUB => SUB for sensor data retrieval.
 ```
 
-####In progress:
+###In progress:
 
 ```bash
 data_collector:     Micro daemon collective for streaming sensor data to task_engine 
@@ -44,7 +44,7 @@ touch_ui:           Interface for 7-inch touch-screen. Most likely based on TK.
 monitoring:         Data-visualization page for observing application.
 ```
 
-### Relationships
+## Relationships
 ```bash                              
                                                sub_routines 
                                                     | ________ analysis
@@ -71,7 +71,7 @@ touch_screen ______> touch_ui   |
             browser ______> monitoring
 ```
 
-### Non-Core Libraries 
+## Non-Core Libraries 
 ```bash
 pyzmq
 ```
