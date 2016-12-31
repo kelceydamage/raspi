@@ -20,9 +20,15 @@
 
 # Imports
 #-------------------------------------------------------------------------------- <-80
+from __future__ import print_function
 from registry.registry import functions
 from engine.workers import TaskWorker
+#from engine.routers import Router
 from conf.configuration import *
+import os
+os.sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from common.spawner import ProcessHandler
+import time
 
 # Globals
 #-------------------------------------------------------------------------------- <-80
@@ -32,10 +38,19 @@ from conf.configuration import *
 
 # Functions
 #-------------------------------------------------------------------------------- <-80
+def test():
+    while True:
+        time.sleep(1)
 
 # Main
 #-------------------------------------------------------------------------------- <-80
 if __name__ == '__main__':
-    w = TaskWorker(HOST, PORT)
-    w.functions = functions
-    w.start()
+    #w = TaskWorker(HOST, PORT)
+    #w.functions = functions
+    #w.start()
+    services = [
+        test,
+        test
+    ]
+    PH = ProcessHandler(services)
+    PH.start()
