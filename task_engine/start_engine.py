@@ -21,12 +21,12 @@
 # Imports
 #-------------------------------------------------------------------------------- <-80
 from __future__ import print_function
+import os
+os.sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from registry.registry import functions
 from engine.workers import TaskWorker, DataWorker
 #from engine.routers import Router
 from conf.configuration import *
-import os
-os.sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from common.spawner import ProcessHandler
 
 # Globals
@@ -54,14 +54,16 @@ def gen_services():
 NAME:           gen_services
 DESCRIPTION:    Populates the SERVICES list for ProcessHandler
     """
+    def _loop(count, worker_type, port):
+        for i in range(count):
+            SERVICES.append([start_worker, [HOST, port, functions, worker_type]])
+            port += 1
+        return SERVICES, port
+
     SERVICES = []
     port = STARTING_PORT
-    for i in range(TASK_WORKERS):
-        SERVICES.append([start_worker, [HOST, port, functions, 0]])
-        port += 1
-    for i in range(DATA_WORKERS):
-        SERVICES.append([start_worker, [HOST, port, functions, 1]])
-        port += 1
+    SERVICES, port = _loop(TASK_WORKERS, 0, port)
+    SERVICES, port = _loop(DATA_WORKERS, 1, port)
     return SERVICES
 
 # Main
