@@ -13,6 +13,7 @@ The goal of the `Raspi` platform is to create an extensable, scalable, hardware 
 * Python based for easy IO interaction with hardware components
 
 ## Contents
+
 ### Currently contains:
 
 ```bash
