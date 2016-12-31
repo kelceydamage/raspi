@@ -90,9 +90,9 @@ a {
   color: $header-heading-color;
   text-align: center;
   background-image: url("../images/raspi-dark.png");
-  background-position: top;
+  /*background-position: top; */
   background-repeat: no-repeat;
-  background-color: $header-bg-color-secondary;
+  background-color: $header-bg-color;
   /*
   background-color: linear-gradient(120deg, $header-bg-color-secondary, $header-bg-color);
   */
