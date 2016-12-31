@@ -89,13 +89,13 @@ a {
 .page-header {
   color: $header-heading-color;
   text-align: center;
-  background-image: url("../images/raspi-dark.png");
+  /*background-image: url("../images/raspi-dark.png"); */
   /*background-position: top; */
   background-repeat: no-repeat;
   background-color: $header-bg-color;
-  /*
+  
   background-color: linear-gradient(120deg, $header-bg-color-secondary, $header-bg-color);
-  */
+  
   @include large {
     padding: 5rem 6rem;
   }
