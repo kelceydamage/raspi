@@ -35,7 +35,7 @@ ai:                 High-level controller of sub_routines, such as pathfinding, 
 
 tasks:              Library of registered tasks, or system capabilities.
 
-touch_ui:           Interface for 7-inch touch-screen.
+touch_ui:           Interface for 7-inch touch-screen. Most likely based on TK.
 
 monitoring:         Data-visualization page for observing application.
 ```
