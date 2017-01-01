@@ -77,6 +77,8 @@ pyzmq
 ## Interaction Specification v0.1
 | Service | Port | Notes |
 |---------|------|-------|
-|task_engine: workers|10000 - #####| task_engine will assign a sequencial port to all worker types requested in the configuration file. |
+|task_engine: workers|random-port| task_engine will assign a random port to workers since they register directly to the routers DEALER|
+|router: frontend|9000||
+|router: backend|9001||
 
 ### More to follow....
