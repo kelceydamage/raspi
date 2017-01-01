@@ -56,15 +56,16 @@ REQUIRES:       host [ip/hostname]
 NAME:           start
 DESCRIPTION:    Start listening for tasks.
         """
-        self._socket.bind('tcp://{0}:{1}'.format(
-            self.host, 
-            self.port
-            ))
+        #self._socket.bind('tcp://{0}:{1}'.format(
+        #    self.host, 
+        #    self.port
+        #    ))
         print('[WORKER-{0}({1})] Listener online'.format(self.port, self.type))
         while True:
-            task = self._socket.recv_pyobj()
+            task = self._socket.recv_multipart()
+            print(task)
             response = self.run_task(task)
-            self._socket.send_pyobj(response)
+            self._socket.send_multipart(response)
 
 class TaskWorker(Worker):
     """
@@ -72,13 +73,14 @@ NAME:           TaskWorker
 DESCRIPTION:    A remote parallel task executor. Child of Worker.
     """
 
-    def __init__(self, host, port, functions):
+    def __init__(self, host, port, dealer, dealer_port, functions):
         super(TaskWorker, self).__init__(host, port)
         """
 NAME:           __init__
 DESCRIPTION:    Initialize worker.
         """
         self._socket = self._context.socket(zmq.REP)
+        self._socket.connect('tcp://{}:{}'.format(dealer, dealer_port))
         self.functions = functions
         self.type = 'TASK'
 

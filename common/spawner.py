@@ -135,6 +135,7 @@ NAME:           ctrl_c
 DESCRIPTION:    Handler for trapped ctrl-c commands
         """
         print('\nClosing application and stopping services...')
+        print(self.status)
         self.kill_proc(self.status)
         sys.exit(0)
 

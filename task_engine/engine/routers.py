@@ -47,6 +47,13 @@ DESCRIPTION:    Routes messages to available workers.
         self.backend = context.socket(zmq.DEALER)
         self.poller = zmq.Poller()
 
+    def register_peers(self, peers):
+        """
+NAME:           register_peers
+DESCRIPTION:    Set a property with all local upstream workers
+        """
+        self.peers = peers
+
     def setup_frontend(self, host, port, proto='tcp'):
         """
 NAME:           setup_frontend
@@ -81,20 +88,18 @@ REQUIRES:       host [ip/hostname]
 
     def run_broker(self):
         """
-NAME:
-DESCRIPTION:
+NAME:           run_broker
+DESCRIPTION:    Main routing component [loop]
         """
         while True:
             print('loop')
-            socks = {}
-            for sock in self.poller.poll():
-                socks[sock[0]] = sock[1]
-            
+            socks = dict(self.poller.poll())
             if socks.get(self.frontend) == zmq.POLLIN:
-                m = [x for x in self.frontend.recv_multipart()]
-                print('received from frontend: {}'.format(m))
+                message = self.frontend.recv_multipart()
+                print('received from frontend: {}'.format(message))
                 meta = json.dumps({'responder': 222})
-                self.frontend.send_multipart(m)
+                self.backend.send_multipart(message)
+                #self.frontend.send_multipart(message)
                 
             """    
             if sock.get(backend) == zmq.POLLIN:

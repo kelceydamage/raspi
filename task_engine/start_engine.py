@@ -25,7 +25,7 @@ import os
 os.sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from registry.registry import functions
 from engine.workers import TaskWorker, DataWorker
-#from engine.routers import Router
+from engine.routers import Router
 from conf.configuration import *
 from common.spawner import ProcessHandler
 
@@ -43,11 +43,26 @@ NAME:           start_worker
 DESCRIPTION:    Wrapper for starting worker class instances with ProcessHandler
     """
     if args[-1] == 0:
-        print('Starting worker[TASK] on socket: {0}:{1}'.format(args[0], args[1]))
-        TaskWorker(host=args[0], port=args[1], functions=args[2]).start()
+        print('Starting [ROUTER] on socket: {0}:{1}'.format(args[0], args[1]))
+        R = Router()
+        R.setup_frontend('127.0.0.1', 9000)
+        R.setup_backend('127.0.0.1', 9001)
+        R.start()
     elif args[-1] == 1:
+        print('Starting worker[TASK] on socket: {0}:{1}'.format(args[0], args[1]))
+        TaskWorker(
+            host=args[0], 
+            port=args[1], 
+            dealer=args[0], 
+            dealer_port=9001, 
+            functions=args[2]
+            ).start()
+    elif args[-1] == 2:
         print('Starting worker[DATA] on socket: {0}:{1}'.format(args[0], args[1]))
-        DataWorker(host=args[0], port=args[1]).start()
+        DataWorker(
+            host=args[0], 
+            port=args[1]
+            ).start()
 
 def gen_services():
     """
@@ -61,9 +76,11 @@ DESCRIPTION:    Populates the SERVICES list for ProcessHandler
         return SERVICES, port
 
     SERVICES = []
+    SERVICES, port = _loop(1, 0, 9000)
     port = STARTING_PORT
-    SERVICES, port = _loop(TASK_WORKERS, 0, port)
-    SERVICES, port = _loop(DATA_WORKERS, 1, port)
+    SERVICES, port = _loop(TASK_WORKERS, 1, port)
+    SERVICES, port = _loop(DATA_WORKERS, 2, port)
+
     return SERVICES
 
 # Main
