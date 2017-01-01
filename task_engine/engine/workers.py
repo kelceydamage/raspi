@@ -78,7 +78,7 @@ DESCRIPTION:    Start listening for tasks.
             print('[WORKER-{0}({1})] Received task: {2}'.format(
                 self.pid, 
                 self.type, 
-                message[1]
+                message
                 ))
             #response = self.run_task(message[1])
             pack = time.time()

@@ -58,7 +58,7 @@ running 10000 samples, took: 0.00262403488159
 ```bash
 [ROUTER-9000(FRONTEND)] Forwarding: ['\x00k\x8bEw', '', '{"type": "REQ", "version": 0.1, "role": "requestor", "id": "CLIENT", "pack": 1483311405.215693}', '{"task": "TASK_count", "pack": 1483311405.215693, "args": [2, 3], "kwargs": {}}']
 loop
-[WORKER-31928(TASK)] Received task: {"task": "TASK_count", "pack": 1483311405.215693, "args": [2, 3], "kwargs": {}}
+[WORKER-31928(TASK)] Received task: ['{"type": "REQ", "version": 0.1, "role": "requestor", "id": "CLIENT", "pack": 1483311405.215693}', '{"task": "TASK_count", "pack": 1483311405.215693, "args": [2, 3], "kwargs": {}}']
 [WORKER-31928(TASK)] Task complete: {"type": "ACK", "version": 0.1, "role": "responder", "id": "TASK-31928", "pack": 1483311405.217414}
 [ROUTER-9001(BACKEND)] Forwarding: ['\x00k\x8bEw', '', '{"type": "ACK", "version": 0.1, "role": "responder", "id": "TASK-31928", "pack": 1483311405.217414}']
 loop
