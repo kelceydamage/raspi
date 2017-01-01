@@ -40,7 +40,19 @@ DESCRIPTION:
 		self.pack = pack
 		
 	def serialize(self):
+		"""
+NAME:			serialize
+DESCRIPTION:	Convert self.message into a json object
+		"""
 		return json.dumps(self.message)
+
+	def pack_frame(self, kwargs):
+		"""
+NAME:			pack_frame
+DESCRIPTION:	Helper to setup a frame
+		"""
+	for key in kwargs:
+		setattr(self, key, kwargs[key])
 
 class MetaFrame(Frame):
 	"""
@@ -114,6 +126,14 @@ REQUIRES:		self.task [Name of task to run]
 
 # Functions
 #-------------------------------------------------------------------------------- <-80
+def prepare(Frame, kwargs):
+	"""
+NAME:			prepare
+DESCRIPTION:	Helper to setup a frame
+	"""
+	Frame.pack_frame(kwargs)
+	Frame.gen_message()
+	return Frame.serialize()
 
 # Main
 #-------------------------------------------------------------------------------- <-80

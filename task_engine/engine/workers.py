@@ -24,6 +24,12 @@ SUMMARY:        Broker-less distributed task workers.
 # Imports
 #-------------------------------------------------------------------------------- <-80
 from __future__ import print_function
+import os
+os.sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from common.datatypes import TaskFrame
+from common.datatypes import MetaFrame
+from common.datatypes import DataFrame
+from common.datatypes import prepare
 import time
 import json
 import zmq

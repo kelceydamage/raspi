@@ -23,6 +23,8 @@ SUMMARY:		Registry of trusted functions for execution
 
 # Imports
 #-------------------------------------------------------------------------------- <-80
+import os
+os.sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from tasks.tasks import count
 
 # Globals
