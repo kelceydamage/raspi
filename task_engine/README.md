@@ -40,9 +40,11 @@ Below are the initial specifications for structuring messages. These are subject
 
 All messages contain at least a META frame. Expected combinations are as follows:
 
-[META]			- Used for ack type messages
-[META, TASK]	- Used for action requests
-[META, DATA]	- Used for data interaction requests
+|Message Parts|Explanation|
+|-------------|-----------|
+|[META]|Used for ack type messages|
+|[META, TASK]|Used for action requests|
+|[META, DATA]|Used for data interaction requests|
 
 ### META Message format [JSON]
 ```bash
