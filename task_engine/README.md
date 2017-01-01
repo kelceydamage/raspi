@@ -46,6 +46,23 @@ All messages contain at least a META frame. Expected combinations are as follows
 |[META, TASK]|Used for action requests|
 |[META, DATA]|Used for data interaction requests|
 
+### Sample communication
+#### client
+```bash
+[CLIENT] Sending: ['{"type": "REQ", "version": 0.1, "role": "requestor", "id": "CLIENT", "pack": 1483311405.215693}', '{"task": "TASK_count", "pack": 1483311405.215693, "args": [2, 3], "kwargs": {}}'][CLIENT] Received: ['{"type": "ACK", "version": 0.1, "role": "responder", "id": "TASK-31928", "pack": 1483311405.217414}']
+running 10000 samples, took: 0.00262403488159
+```
+
+#### task_engine
+```bash
+[ROUTER-9000(FRONTEND)] Forwarding: ['\x00k\x8bEw', '', '{"type": "REQ", "version": 0.1, "role": "requestor", "id": "CLIENT", "pack": 1483311405.215693}', '{"task": "TASK_count", "pack": 1483311405.215693, "args": [2, 3], "kwargs": {}}']
+loop
+[WORKER-31928(TASK)] Received task: {"task": "TASK_count", "pack": 1483311405.215693, "args": [2, 3], "kwargs": {}}
+[WORKER-31928(TASK)] Task complete: {"type": "ACK", "version": 0.1, "role": "responder", "id": "TASK-31928", "pack": 1483311405.217414}
+[ROUTER-9001(BACKEND)] Forwarding: ['\x00k\x8bEw', '', '{"type": "ACK", "version": 0.1, "role": "responder", "id": "TASK-31928", "pack": 1483311405.217414}']
+loop
+```
+
 ### META Message format [JSON]
 ```bash
 self.message = {
