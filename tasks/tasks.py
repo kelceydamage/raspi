@@ -32,7 +32,7 @@ SUMMARY:		Starter script for storing registered functions
 
 # Functions
 #-------------------------------------------------------------------------------- <-80
-def count(*args, **kwargs):
+def task_count(*args, **kwargs):
 	"""
 	NAME:
 	DESCRIPTION:

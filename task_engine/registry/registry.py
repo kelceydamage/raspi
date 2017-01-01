@@ -18,26 +18,51 @@
 # Doc
 #-------------------------------------------------------------------------------- <-80
 """
-SUMMARY:		Registry of trusted functions for execution
+SUMMARY:        Registry of trusted functions for execution
 """
 
 # Imports
 #-------------------------------------------------------------------------------- <-80
 import os
-os.sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from tasks.tasks import count
+os.sys.path.append(
+    os.path.dirname(
+        os.path.dirname(
+            os.path.dirname(
+                os.path.abspath(__file__)
+                )
+            )
+        )
+    )
+from inspect import getmembers
+from inspect import isfunction
+import pkgutil
+import sys
 
 # Globals
 #-------------------------------------------------------------------------------- <-80
-functions = {
-	'count': count
-}
 
 # Classes
 #-------------------------------------------------------------------------------- <-80
 
 # Functions
 #-------------------------------------------------------------------------------- <-80
+def load_tasks(dirname):
+    """
+NAME:           load_tasks
+DESCRIPTION:    Auto loader and parser for task modules. This function is written for
+                efficiency, so I appologize for lack of readability.
+    """
+    functions = {}
+    member_list = []
+    for importer, package_name, _ in pkgutil.iter_modules([dirname]):
+        full_package_name = '%s.%s' % (dirname, package_name)
+        if full_package_name not in sys.modules:
+            module = importer.find_module(package_name).load_module(full_package_name)
+            for member in [x for x in dir(module) if 'task_' in x]:
+                functions[member] = member
+
+    return functions
 
 # Main
 #-------------------------------------------------------------------------------- <-80
+functions = load_tasks('../../tasks')
