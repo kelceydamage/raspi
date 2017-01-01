@@ -40,12 +40,13 @@ class Router(object):
 NAME:           Router
 DESCRIPTION:    Routes messages to available workers.
     """
-    def __init__(self):
+    def __init__(self, pid):
         super(Router, self).__init__()
         context = zmq.Context()
         self.frontend = context.socket(zmq.ROUTER)
         self.backend = context.socket(zmq.DEALER)
         self.poller = zmq.Poller()
+        self.pid = pid
 
     def register_peers(self, peers):
         """
@@ -99,17 +100,12 @@ DESCRIPTION:    Main routing component [loop]
                 print('received from frontend: {}'.format(message))
                 meta = json.dumps({'responder': 222})
                 self.backend.send_multipart(message)
-                #self.frontend.send_multipart(message)
-                
-            """    
-            if sock.get(backend) == zmq.POLLIN:
-                for message in backend.recv_multipart():
-                    yield message
+
+            if socks.get(self.backend) == zmq.POLLIN:
+                message = self.backend.recv_multipart()
                 print('received from backend: {}'.format(message))
-                for part in frontend.send_multipart(message):
-                    yield part
-            time.sleep(1)
-            """
+                meta = json.dumps({'responder': 222})
+                self.frontend.send_multipart(message)
 
     def start(self):
         """

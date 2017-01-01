@@ -56,16 +56,14 @@ REQUIRES:       host [ip/hostname]
 NAME:           start
 DESCRIPTION:    Start listening for tasks.
         """
-        #self._socket.bind('tcp://{0}:{1}'.format(
-        #    self.host, 
-        #    self.port
-        #    ))
-        print('[WORKER-{0}({1})] Listener online'.format(self.port, self.type))
+        print('[WORKER-{0}({1})] Listener online'.format(self.pid, self.type))
         while True:
             task = self._socket.recv_multipart()
-            print(task)
-            response = self.run_task(task)
-            self._socket.send_multipart(response)
+            print('[WORKER-{0}({1})] Received task: {2}'.format(self.pid, self.type, task))
+            #response = self.run_task(task)
+            print('[WORKER-{0}({1})] Sending: {2}'.format(self.pid, self.type, 
+                [b'{0}'.format('done'), b'W-{0}'.format(self.pid)]))
+            self._socket.send_multipart([b'{0}'.format('done'), b'W-{0}'.format(self.pid)])
 
 class TaskWorker(Worker):
     """
@@ -73,7 +71,7 @@ NAME:           TaskWorker
 DESCRIPTION:    A remote parallel task executor. Child of Worker.
     """
 
-    def __init__(self, host, port, dealer, dealer_port, functions):
+    def __init__(self, host, port, pid, dealer, dealer_port, functions):
         super(TaskWorker, self).__init__(host, port)
         """
 NAME:           __init__
@@ -83,6 +81,7 @@ DESCRIPTION:    Initialize worker.
         self._socket.connect('tcp://{}:{}'.format(dealer, dealer_port))
         self.functions = functions
         self.type = 'TASK'
+        self.pid = pid
 
     def run_task(self, task):
         """
@@ -105,7 +104,7 @@ NAME:           DataWorker
 DESCRIPTION:    A remote data subscriber. Child of Worker.
     """
 
-    def __init__(self, host, port):
+    def __init__(self, host, port, pid):
         super(DataWorker, self).__init__(host, port)
         """
 NAME:           __init__
@@ -113,6 +112,7 @@ DESCRIPTION:    Initialize worker.
         """
         self._socket = self._context.socket(zmq.SUB)
         self.type = 'DATA'
+        self.pid = pid
 
     def run_task(self, task):
         pass

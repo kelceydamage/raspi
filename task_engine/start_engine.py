@@ -37,14 +37,14 @@ from common.spawner import ProcessHandler
 
 # Functions
 #-------------------------------------------------------------------------------- <-80
-def start_worker(args):
+def start_worker(args, pid):
     """
 NAME:           start_worker
 DESCRIPTION:    Wrapper for starting worker class instances with ProcessHandler
     """
     if args[-1] == 0:
         print('Starting [ROUTER] on socket: {0}:{1}'.format(args[0], args[1]))
-        R = Router()
+        R = Router(pid=pid)
         R.setup_frontend('127.0.0.1', 9000)
         R.setup_backend('127.0.0.1', 9001)
         R.start()
@@ -53,15 +53,17 @@ DESCRIPTION:    Wrapper for starting worker class instances with ProcessHandler
         TaskWorker(
             host=args[0], 
             port=args[1], 
+            pid=pid,
             dealer=args[0], 
             dealer_port=9001, 
-            functions=args[2]
+            functions=args[2],
             ).start()
     elif args[-1] == 2:
         print('Starting worker[DATA] on socket: {0}:{1}'.format(args[0], args[1]))
         DataWorker(
             host=args[0], 
-            port=args[1]
+            port=args[1],
+            pid=pid
             ).start()
 
 def gen_services():

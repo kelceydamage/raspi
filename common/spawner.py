@@ -82,7 +82,7 @@ REQUIRES:       services [list of functions]
                 print('Starting process [{0}]: {1}'.format(pid, service[0]))
                 reply = ['success', pid, service] 
                 self.q.put(reply)
-                service[0](service[1])
+                service[0](service[1], pid)
             except Exception as e:
                 reply = ['FAIL: {0}'.format(e), pid, service] 
                 self.q.put(reply)
