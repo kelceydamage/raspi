@@ -33,49 +33,44 @@ Sucessfully terminated process [7760]: <function start_worker at 0x76685a70>
 ```
 
 ## Interaction v0.1
-Task Engine starts workers on port 10000 and above sequentially, starting with TASK workers and then DATA workers. This will be configurable but is recommended as specification. 
-
-**Once the ROUT worker is completed, it will handle brokering.
+Task Engine starts a ROUTER and [n] number of DATA and TASK workers. Requestors send requests to the ROUTER as the frontend of the task engine.
 
 ## Mesage Specification v0.1
-Below are the initial specifications for structuring messages. These are subject to revision.
+Below are the initial specifications for structuring messages. These are subject to revision. More information exists in ../common/datatypes.py
 
-### REPL Message format [JSON]
+All messages contain at least a META frame. Expected combinations are as follows:
+
+[META]			- Used for ack type messages
+[META, TASK]	- Used for action requests
+[META, DATA]	- Used for data interaction requests
+
+### META Message format [JSON]
 ```bash
-{
-	"meta": {
-		"source": <hostname>,
-		"cname": <system-identifier>,
-		"version": <source-version>
-	}
+self.message = {
+	'id': <string>,
+	'role': <string>
+	'version': <string>,
+	'type': <string>,
+	'pack': <int>
 }
 ```
 
 ### TASK Message format [JSON]
 ```bash
-{
-	"name": <string>,
-	"args": <list>,
-	"kwargs": <dict>,
-	"meta": {
-		"source": <hostname>,
-		"cname": <system-identifier>,
-		"version": <source-version>
-	}
-}
+self.message = {
+	'task': <string>,
+	'args': <list>,
+	'kwargs': <dict>,
+	'pack': <int>
+}	
 ```
 
 ### DATA Message format [JSON]
 ```bash
-{
-	"data": <dict>,
-	"service": <sensor-provider-name>,
-	"meta": {
-		"source": <hostname>,	
-		"cname": <system-identifier>,
-		"version": <source-version>
-	}
-}
+self.message = {
+	'data': <any-format>,
+	'pack': <int>
+}	
 ```
 
 ### More to follow....
