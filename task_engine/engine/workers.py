@@ -25,7 +25,15 @@ SUMMARY:        Broker-less distributed task workers.
 #-------------------------------------------------------------------------------- <-80
 from __future__ import print_function
 import os
-os.sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+os.sys.path.append(
+    os.path.dirname(
+        os.path.dirname(
+            os.path.dirname(
+                os.path.abspath(__file__)
+                )
+            )
+        )
+    )
 from common.datatypes import TaskFrame
 from common.datatypes import MetaFrame
 from common.datatypes import DataFrame
@@ -36,6 +44,7 @@ import zmq
 
 # Globals
 #-------------------------------------------------------------------------------- <-80
+VERSION = 0.1
 
 # Classes
 #-------------------------------------------------------------------------------- <-80
@@ -56,6 +65,7 @@ REQUIRES:       host [ip/hostname]
         self.host = host
         self.port = port
         self._context = zmq.Context()
+        self.version = VERSION
 
     def start(self):
         """
@@ -64,12 +74,28 @@ DESCRIPTION:    Start listening for tasks.
         """
         print('[WORKER-{0}({1})] Listener online'.format(self.pid, self.type))
         while True:
-            task = self._socket.recv_multipart()
-            print('[WORKER-{0}({1})] Received task: {2}'.format(self.pid, self.type, task))
-            #response = self.run_task(task)
-            print('[WORKER-{0}({1})] Sending: {2}'.format(self.pid, self.type, 
-                [b'{0}'.format('done'), b'W-{0}'.format(self.pid)]))
-            self._socket.send_multipart([b'{0}'.format('done'), b'W-{0}'.format(self.pid)])
+            message = self._socket.recv_multipart()
+            print('[WORKER-{0}({1})] Received task: {2}'.format(
+                self.pid, 
+                self.type, 
+                message[1]
+                ))
+            #response = self.run_task(message[1])
+            pack = time.time()
+            kwargs = {
+            'id': self.id,
+            'role': 'responder',
+            'version': self.version,
+            'type': 'ACK',
+            'pack': pack
+            }
+            message = prepare(MetaFrame(pack), kwargs)
+            print('[WORKER-{0}({1})] Task complete: {2}'.format(
+                self.pid, 
+                self.type,
+                message
+                ))
+            self._socket.send_multipart([message, ])
 
 class TaskWorker(Worker):
     """
@@ -88,6 +114,7 @@ DESCRIPTION:    Initialize worker.
         self.functions = functions
         self.type = 'TASK'
         self.pid = pid
+        self.id = '{0}-{1}'.format(self.type, self.pid)
 
     def run_task(self, task):
         """
@@ -98,11 +125,12 @@ REQUIRES:       task object [dict]
                 - args
                 - kwargs
         """
+        print(task)
         task = json.loads(task)
         name = task['name']
         args = task['args']
         kwargs = task['kwargs']
-        return self.functions[name](*args, **kwargs)
+        #return self.functions[name](*args, **kwargs)
 
 class DataWorker(Worker):
     """
@@ -119,6 +147,7 @@ DESCRIPTION:    Initialize worker.
         self._socket = self._context.socket(zmq.SUB)
         self.type = 'DATA'
         self.pid = pid
+        self.id = '{0}-{1}'.format(self.type, self.pid)
 
     def run_task(self, task):
         pass

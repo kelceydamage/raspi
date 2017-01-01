@@ -24,6 +24,20 @@
 # Imports
 #-------------------------------------------------------------------------------- <-80
 from __future__ import print_function
+import os
+os.sys.path.append(
+    os.path.dirname(
+        os.path.dirname(
+            os.path.dirname(
+                os.path.abspath(__file__)
+                )
+            )
+        )
+    )
+from common.datatypes import TaskFrame
+from common.datatypes import MetaFrame
+from common.datatypes import DataFrame
+from common.datatypes import prepare
 import sys
 import os
 import zmq
@@ -97,14 +111,12 @@ DESCRIPTION:    Main routing component [loop]
             socks = dict(self.poller.poll())
             if socks.get(self.frontend) == zmq.POLLIN:
                 message = self.frontend.recv_multipart()
-                print('received from frontend: {}'.format(message))
-                meta = json.dumps({'responder': 222})
+                print('[ROUTER-9000(FRONTEND)] Forwarding: {}'.format(message))
                 self.backend.send_multipart(message)
 
             if socks.get(self.backend) == zmq.POLLIN:
                 message = self.backend.recv_multipart()
-                print('received from backend: {}'.format(message))
-                meta = json.dumps({'responder': 222})
+                print('[ROUTER-9001(BACKEND)] Forwarding: {}'.format(message))
                 self.frontend.send_multipart(message)
 
     def start(self):
