@@ -58,7 +58,7 @@ DESCRIPTION:    Auto loader and parser for task modules. This function is writte
         full_package_name = '%s.%s' % (dirname, package_name)
         if full_package_name not in sys.modules:
             module = importer.find_module(package_name).load_module(full_package_name)
-            for member in [x for x in dir(module) if 'task_' in x]:
+            for member in [x for x in dir(module) if 'TASK_' in x]:
                 functions[member] = member
 
     return functions
