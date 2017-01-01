@@ -49,7 +49,8 @@ All messages contain at least a META frame. Expected combinations are as follows
 ### Sample communication
 #### client
 ```bash
-[CLIENT] Sending: ['{"type": "REQ", "version": 0.1, "role": "requestor", "id": "CLIENT", "pack": 1483311405.215693}', '{"task": "TASK_count", "pack": 1483311405.215693, "args": [2, 3], "kwargs": {}}'][CLIENT] Received: ['{"type": "ACK", "version": 0.1, "role": "responder", "id": "TASK-31928", "pack": 1483311405.217414}']
+[CLIENT] Sending: ['{"type": "REQ", "version": 0.1, "role": "requestor", "id": "CLIENT", "pack": 1483311405.215693}', '{"task": "TASK_count", "pack": 1483311405.215693, "args": [2, 3], "kwargs": {}}']
+[CLIENT] Received: ['{"type": "ACK", "version": 0.1, "role": "responder", "id": "TASK-31928", "pack": 1483311405.217414}']
 running 10000 samples, took: 0.00262403488159
 ```
 
