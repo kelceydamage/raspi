@@ -70,7 +70,10 @@ REQUIRES:       task object [dict]
 # Main
 #-------------------------------------------------------------------------------- <-80
 start = time.time()
+
+# Pack is simply a time epoch which can be used to identify all frames in an envelope
 pack = time.time()
+
 kwargs = {
 'id': 'CLIENT',
 'role': 'requestor',
@@ -78,13 +81,18 @@ kwargs = {
 'type': 'REQ',
 'pack': pack
 }
+# prepare is a helper function that will enforce correct message structure. however for
+# slightly more performance you can just call json.dumps() om a dict and send.
 meta = prepare(MetaFrame(pack), kwargs)
+
 kwargs = {
 'task': 'task_get_average',
 'args': [2, 3],
 'kwargs': {},
 'pack': pack
 }
+# prepare is a helper function that will enforce correct message structure. however for
+# slightly more performance you can just call json.dumps() om a dict and send.
 task = prepare(TaskFrame(pack), kwargs)
 
 results = []
@@ -101,5 +109,5 @@ print('running {0} samples, took: {2}'.format(
     ))
 
 # enable to see output
-# print(results)
+#print(results)
 
