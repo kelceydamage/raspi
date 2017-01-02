@@ -113,7 +113,7 @@ DESCRIPTION:    Start listening for tasks.
             response = self.run_task(message[1])
             message = self.message(DataFrame, response)
             self.log('Task complete', message, True)
-            self._socket.send_multipart([meta, data])
+            self._socket.send_multipart(message)
 
 class TaskWorker(Worker):
     """
