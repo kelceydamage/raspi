@@ -84,11 +84,14 @@ REQUIRES:       self.id [formatted as '{ROLE}-{PID}'] Example: 'W-3223'
                 self.type [ACK, DATAGRAM, etc...]
                 self.pack [Package ID]
         """
-        self.message['id'] = self.id
-        self.message['role'] = self.role
-        self.message['version'] = self.version
-        self.message['type'] = self.type
-        self.message['pack'] = self.pack
+        try:
+            self.message['id'] = self.id
+            self.message['role'] = self.role
+            self.message['version'] = self.version
+            self.message['type'] = self.type
+            self.message['pack'] = self.pack
+        except Exception, e:
+            self.message['error'] = b'Missing key parameter'
 
 class DataFrame(Frame):
     """
@@ -110,8 +113,11 @@ DESCRIPTION:    Converts object into a serializable dict
 REQUIRES:       self.data [Data payload]
                 self.pack [Package ID]
         """
-        self.message['data'] = self.data
-        self.message['pack'] = self.paack
+        try:
+            self.message['data'] = self.data
+            self.message['pack'] = self.paack
+        except Exception, e:
+            self.message['error'] = b'Missing key parameter'
 
 class TaskFrame(Frame):
     """
@@ -137,10 +143,13 @@ REQUIRES:       self.task [Name of task to run]
                 self.kwargs [Standard kwargs (dict)]
                 self.pack [Package ID]
         """
-        self.message['task'] = self.task
-        self.message['args'] = self.args
-        self.message['kwargs'] = self.kwargs
-        self.message['pack'] = self.pack 
+        try:
+            self.message['task'] = self.task
+            self.message['args'] = self.args
+            self.message['kwargs'] = self.kwargs
+            self.message['pack'] = self.pack 
+        except Exception, e:
+            self.message['error'] = b'Missing key parameter'
 
 # Functions
 #-------------------------------------------------------------------------------- <-80

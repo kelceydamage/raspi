@@ -32,7 +32,7 @@ TASK_WORKERS = 2
 DATA_WORKERS = 1
 
 # Logging
-ENABLE_STDOUT = False
+ENABLE_STDOUT = True
 
 # Classes
 #-------------------------------------------------------------------------------- <-80
