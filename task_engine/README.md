@@ -6,6 +6,9 @@ To test Task Engine simply run the `start_engine.py` utility.
 
 when running the `start_engine.py` script you should see an output similar to below if using the default configuration.
 ```bash
+[REGISTERED-TASKS]:
+[-] task_count
+------------------
 ### Type [ctrl-c] to exit and shutdown workers ###
 Starting process [20709]: <function start_worker at 0x76725e30>
 Starting [ROUTER] on socket: 127.0.0.1:9000
@@ -91,6 +94,35 @@ self.message = {
 	'data': <any-format>,
 	'pack': <int>
 }	
+```
+
+### Message formatting
+here is a template for formatting messages. Below we are creating a TASK request. It is important to note that metadata should precede other frames.
+```python
+from common.datatypes import TaskFrame
+from common.datatypes import MetaFrame
+from common.datatypes import DataFrame
+from common.datatypes import prepare
+import time
+
+pack = time.time()
+kwargs = {
+'id': 'CLIENT',
+'role': 'requestor',
+'version': 0.1,
+'type': 'REQ',
+'pack': pack
+}
+meta = prepare(MetaFrame(pack), kwargs)
+kwargs = {
+'task': 'task_count',
+'args': [2, 3],
+'kwargs': {},
+'pack': pack
+}
+task = prepare(TaskFrame(pack), kwargs)
+
+message = [meta, task]
 ```
 
 ### More to follow....
