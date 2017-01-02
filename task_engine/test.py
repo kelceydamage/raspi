@@ -24,12 +24,15 @@
 # Imports
 #-------------------------------------------------------------------------------- <-80
 import os
-os.sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
-from common.datatypes import TaskFrame
-from common.datatypes import MetaFrame
-from common.datatypes import DataFrame
-from common.datatypes import prepare
-import time
+os.sys.path.append(
+    os.path.dirname(
+
+
+        os.path.abspath(__file__)
+
+        )
+    )
+from registry.registry import functions, load_tasks
 
 # Globals
 #-------------------------------------------------------------------------------- <-80
@@ -43,14 +46,5 @@ import time
 # Main
 #-------------------------------------------------------------------------------- <-80
 if __name__ == '__main__':
-    pack = time.time()
-    kwargs = {
-        'id': 'self.id',
-        'role': 'responder',
-        'version': 'self.version',
-        'type': 'ACK',
-        'pack': pack
-    }
-    print(kwargs)
-    message = prepare(MetaFrame(pack), kwargs)
-    print(message)
+    print functions
+    print load_tasks('../tasks')

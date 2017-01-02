@@ -77,7 +77,7 @@ kwargs = {
 }
 meta = prepare(MetaFrame(pack), kwargs)
 kwargs = {
-'task': 'TASK_count',
+'task': 'task_count',
 'args': [2, 3],
 'kwargs': {},
 'pack': pack

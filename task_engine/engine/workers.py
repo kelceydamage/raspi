@@ -38,6 +38,7 @@ from common.datatypes import TaskFrame
 from common.datatypes import MetaFrame
 from common.datatypes import DataFrame
 from common.datatypes import prepare
+from tasks import *
 import time
 import json
 import zmq
@@ -80,7 +81,7 @@ DESCRIPTION:    Start listening for tasks.
                 self.type, 
                 message
                 ))
-            #response = self.run_task(message[1])
+            response = self.run_task(message[1])
             pack = time.time()
             kwargs = {
             'id': self.id,
@@ -89,13 +90,18 @@ DESCRIPTION:    Start listening for tasks.
             'type': 'ACK',
             'pack': pack
             }
-            message = prepare(MetaFrame(pack), kwargs)
+            meta = prepare(MetaFrame(pack), kwargs)
+            kwargs = {
+            'data': response,
+            'pack': pack
+            }
+            data = prepare(DataFrame(pack), kwargs)
             print('[WORKER-{0}({1})] Task complete: {2}'.format(
                 self.pid, 
                 self.type,
                 message
                 ))
-            self._socket.send_multipart([message, ])
+            self._socket.send_multipart([meta, data])
 
 class TaskWorker(Worker):
     """
@@ -116,21 +122,25 @@ DESCRIPTION:    Initialize worker.
         self.pid = pid
         self.id = '{0}-{1}'.format(self.type, self.pid)
 
-    def run_task(self, task):
+    def run_task(self, request):
         """
 NAME:           run_task
 DESCRIPTION:    Return the result of executing the given task
-REQUIRES:       task object [dict]
-                - name
+REQUIRES:       request message [JSON]
+                - task
                 - args
                 - kwargs
         """
-        print(task)
-        task = json.loads(task)
-        name = task['name']
-        args = task['args']
-        kwargs = task['kwargs']
-        #return self.functions[name](*args, **kwargs)
+        try:
+            request = json.loads(request)
+            task = request['task']
+            args = request['args']
+            kwargs = request['kwargs']
+            response = eval(self.functions[task])(*args, **kwargs)
+        except Exception, e:
+            response = 'ERROR: {0}'.format(e)
+        return response
+
 
 class DataWorker(Worker):
     """

@@ -17,13 +17,22 @@
 
 # Doc
 #-------------------------------------------------------------------------------- <-80
+"""
+SUMMARY:        Utility for starting aand configuring a task_engine cluster
+"""
 
 # Imports
 #-------------------------------------------------------------------------------- <-80
 from __future__ import print_function
 import os
-os.sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from registry.registry import functions
+os.sys.path.append(
+    os.path.dirname(
+        os.path.dirname(
+            os.path.abspath(__file__)
+            )
+        )
+    )
+from registry.registry import load_tasks
 from engine.workers import TaskWorker, DataWorker
 from engine.routers import Router
 from conf.configuration import *
@@ -71,23 +80,26 @@ def gen_services():
 NAME:           gen_services
 DESCRIPTION:    Populates the SERVICES list for ProcessHandler
     """
-    def _loop(count, worker_type, port):
+    def _loop(count, worker_type, port, functions=''):
         for i in range(count):
             SERVICES.append([start_worker, [HOST, port, functions, worker_type]])
             port += 1
         return SERVICES, port
 
+    functions = load_tasks('../tasks')
     SERVICES = []
     SERVICES, port = _loop(1, 0, 9000)
     port = STARTING_PORT
-    SERVICES, port = _loop(TASK_WORKERS, 1, port)
-    SERVICES, port = _loop(DATA_WORKERS, 2, port)
+    SERVICES, port = _loop(TASK_WORKERS, 1, port, functions)
+    SERVICES, port = _loop(DATA_WORKERS, 2, port, functions)
 
-    return SERVICES
+    return SERVICES, functions
 
 # Main
 #-------------------------------------------------------------------------------- <-80
 if __name__ == '__main__':
-    SERVICES = gen_services()
+    SERVICES, functions = gen_services()
     PH = ProcessHandler(SERVICES)
+    print('[REGISTERED-TASKS]: \n[-] {0}'.format('\n[-] '.join(functions.keys())))
+    print('------------------')
     PH.start()
