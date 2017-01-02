@@ -34,6 +34,7 @@ os.sys.path.append(
             )
         )
     )
+from conf.configuration import ENABLE_STDOUT
 from common.datatypes import TaskFrame
 from common.datatypes import MetaFrame
 from common.datatypes import DataFrame
@@ -107,16 +108,15 @@ NAME:           run_broker
 DESCRIPTION:    Main routing component [loop]
         """
         while True:
-            print('loop')
             socks = dict(self.poller.poll())
             if socks.get(self.frontend) == zmq.POLLIN:
                 message = self.frontend.recv_multipart()
-                print('[ROUTER-9000(FRONTEND)] Forwarding: {}'.format(message))
+                self.log('Forwarding', 'FRONTEND', message)
                 self.backend.send_multipart(message)
 
             if socks.get(self.backend) == zmq.POLLIN:
                 message = self.backend.recv_multipart()
-                print('[ROUTER-9001(BACKEND)] Forwarding: {}'.format(message))
+                self.log('Forwarding', 'BACKEND', message)
                 self.frontend.send_multipart(message)
 
     def start(self):
@@ -126,6 +126,15 @@ DESCRIPTION:
         """
         print('[ROUTER-MASTER] Routing started')
         self.run_broker()
+
+    def log(self, action, service, message):
+        if ENABLE_STDOUT == True:
+            print('[ROUTER-{0}({1})] {3}: {2}'.format(
+                self.pid, 
+                service, 
+                message,
+                action
+                )) 
 
 # Functions
 #-------------------------------------------------------------------------------- <-80

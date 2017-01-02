@@ -31,6 +31,9 @@ STARTING_PORT = 10000
 TASK_WORKERS = 2
 DATA_WORKERS = 1
 
+# Logging
+ENABLE_STDOUT = False
+
 # Classes
 #-------------------------------------------------------------------------------- <-80
 

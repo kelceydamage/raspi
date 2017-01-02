@@ -34,6 +34,7 @@ os.sys.path.append(
             )
         )
     )
+from conf.configuration import ENABLE_STDOUT
 from common.datatypes import TaskFrame
 from common.datatypes import MetaFrame
 from common.datatypes import DataFrame
@@ -42,6 +43,7 @@ from tasks import *
 import time
 import json
 import zmq
+import md5
 
 # Globals
 #-------------------------------------------------------------------------------- <-80
@@ -67,16 +69,13 @@ REQUIRES:       host [ip/hostname]
         self.port = port
         self._context = zmq.Context()
         self.version = VERSION
-        self.meta = {
-            'id': '',
-            'role': 'responder',
-            'version': self.version,
-            'type': '',
-            'pack': ''
-            }
+        self.data = DataFrame(0)
+        self.task = TaskFrame(0)
+        self.meta = MetaFrame(0)
+        self.meta.message['version'] = self.version
 
-    def log(self, action, message, _print):
-        if _print == True:
+    def log(self, action, message):
+        if ENABLE_STDOUT == True:
             print('[WORKER-{0}({1})] {3}: {2}'.format(
                 self.pid, 
                 self.type, 
@@ -92,13 +91,11 @@ REQUIRES:       Frame [Frame classtype]
                 response [task output]
         """
         pack = time.time()
-        kwargs = {
-        'data': response,
-        'pack': pack
-        }
-        self.meta['pack'] = pack
-        meta = prepare(MetaFrame(pack), self.meta)
-        frame = prepare(Frame(pack), kwargs)
+        self.meta.message['pack'] = pack
+        meta = self.meta.serialize()
+        self.data.message['pack'] = pack
+        self.data.message['data'] = response
+        frame = self.data.serialize()
         return [meta, frame]
 
     def start(self):
@@ -106,14 +103,36 @@ REQUIRES:       Frame [Frame classtype]
 NAME:           start
 DESCRIPTION:    Start listening for tasks.
         """
-        self.log('Listener online', '', True)
+        self.log('Listener online', '')
         while True:
             message = self._socket.recv_multipart()
-            self.log('Received task', message, True)
-            response = self.run_task(message[1])
-            message = self.message(DataFrame, response)
-            self.log('Task complete', message, True)
+            message = self.recv_validation(message)
+            if message == None:
+                message = self.message(DataFrame, b'ERROR: Invalid request')
+            else:
+                self.log('Received task', message)
+                response = self.run_task(message[1])
+                message = self.message(DataFrame, response)
+                self.log('Task complete', message)
             self._socket.send_multipart(message)
+
+    def recv_validation(self, message):
+        """
+NAME:           recv_validation
+DESCRIPTION:    Validate incoming requests
+        """
+        val1 = False
+        val2 = False
+        meta = json.loads(message[0])
+        frame = json.loads(message[1])
+        if md5.md5(''.join(sorted(meta))).hexdigest() == self.meta.hash:
+            val1 = True
+        if md5.md5(''.join(sorted(frame))).hexdigest() == self.hash:
+            val2 = True
+        if val1 == True and val2 == True:
+            return [meta, frame]
+        else:
+            return None
 
 class TaskWorker(Worker):
     """
@@ -132,8 +151,10 @@ DESCRIPTION:    Initialize worker.
         self.functions = functions
         self.type = 'TASK'
         self.pid = pid
-        self.meta['id'] = '{0}-{1}'.format(self.type, self.pid)
-        self.meta['type'] = 'ACK'
+        self.meta.message['role'] = 'responder'
+        self.meta.message['id'] = '{0}-{1}'.format(self.type, self.pid)
+        self.meta.message['type'] = 'ACK'
+        self.hash = self.task.hash
 
     def run_task(self, request):
         """
@@ -145,7 +166,6 @@ REQUIRES:       request message [JSON]
                 - kwargs
         """
         try:
-            request = json.loads(request)
             task = request['task']
             args = request['args']
             kwargs = request['kwargs']
@@ -153,7 +173,6 @@ REQUIRES:       request message [JSON]
         except Exception, e:
             response = 'ERROR: {0}'.format(e)
         return response
-
 
 class DataWorker(Worker):
     """
@@ -171,6 +190,7 @@ DESCRIPTION:    Initialize worker.
         self.type = 'DATA'
         self.pid = pid
         self.meta['id'] = '{0}-{1}'.format(self.type, self.pid)
+        self.hash = self.data.hash
 
     def run_task(self, task):
         pass
@@ -180,3 +200,6 @@ DESCRIPTION:    Initialize worker.
 
 # Main
 #-------------------------------------------------------------------------------- <-80
+if __name__ == '__main__':
+    TW = TaskWorker('127.0.0.1', 10000, os.getpid, '127.0.0.1', 9001, {})
+    TW.start()

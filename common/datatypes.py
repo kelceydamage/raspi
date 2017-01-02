@@ -24,6 +24,7 @@ SUMMARY: Classes to represent various message frame datatypes
 # Imports
 #-------------------------------------------------------------------------------- <-80
 import json
+import md5
 
 # Globals
 #-------------------------------------------------------------------------------- <-80
@@ -54,6 +55,9 @@ DESCRIPTION:    Helper to setup a frame
         for key in kwargs:
             setattr(self, key, kwargs[key])
 
+    def digest(self):
+        self.hash = md5.md5(''.join(sorted(self.message))).hexdigest()
+
 class MetaFrame(Frame):
     """
 NAME:           MetaFrame
@@ -61,6 +65,14 @@ DESCRIPTION:    Frame object for metadata
     """
     def __init__(self, pack):
         super(MetaFrame, self).__init__(pack)
+        self.message = {
+            'id': '',
+            'role': '',
+            'version': '',
+            'type': '',
+            'pack': ''
+        }
+        self.digest()
 
     def gen_message(self):
         """
@@ -72,13 +84,11 @@ REQUIRES:       self.id [formatted as '{ROLE}-{PID}'] Example: 'W-3223'
                 self.type [ACK, DATAGRAM, etc...]
                 self.pack [Package ID]
         """
-        self.message = {
-            'id': self.id,
-            'role': self.role,
-            'version': self.version,
-            'type': self.type,
-            'pack': self.pack
-        }
+        self.message['id'] = self.id
+        self.message['role'] = self.role
+        self.message['version'] = self.version
+        self.message['type'] = self.type
+        self.message['pack'] = self.pack
 
 class DataFrame(Frame):
     """
@@ -87,6 +97,11 @@ DESCRIPTION:    Frame object for data
     """
     def __init__(self, pack):
         super(DataFrame, self).__init__(pack)
+        self.message = {
+            'data': '',
+            'pack': ''
+        }   
+        self.digest()
 
     def gen_message(self):
         """
@@ -95,10 +110,8 @@ DESCRIPTION:    Converts object into a serializable dict
 REQUIRES:       self.data [Data payload]
                 self.pack [Package ID]
         """
-        self.message = {
-            'data': self.data,
-            'pack': self.pack
-        }   
+        self.message['data'] = self.data
+        self.message['pack'] = self.paack
 
 class TaskFrame(Frame):
     """
@@ -107,6 +120,13 @@ DESCRIPTION:    Frame object for tasks
     """
     def __init__(self, pack):
         super(TaskFrame, self).__init__(pack)
+        self.message = {
+            'task': '',
+            'args': '',
+            'kwargs': '',
+            'pack': ''
+        }  
+        self.digest() 
 
     def gen_message(self):
         """
@@ -117,12 +137,10 @@ REQUIRES:       self.task [Name of task to run]
                 self.kwargs [Standard kwargs (dict)]
                 self.pack [Package ID]
         """
-        self.message = {
-            'task': self.task,
-            'args': self.args,
-            'kwargs': self.kwargs,
-            'pack': self.pack
-        }   
+        self.message['task'] = self.task
+        self.message['args'] = self.args
+        self.message['kwargs'] = self.kwargs
+        self.message['pack'] = self.pack 
 
 # Functions
 #-------------------------------------------------------------------------------- <-80
