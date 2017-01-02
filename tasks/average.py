@@ -18,7 +18,7 @@
 # Doc
 #-------------------------------------------------------------------------------- <-80
 """
-SUMMARY:		Starter script for storing registered functions
+
 """
 
 # Imports
@@ -32,8 +32,8 @@ SUMMARY:		Starter script for storing registered functions
 
 # Functions
 #-------------------------------------------------------------------------------- <-80
-def task_get_count(*args, **kwargs):
-	return sum(args)
+def task_get_average(*args):
+	return float(sum(args)) / float(len(args))
 
 # Main
 #-------------------------------------------------------------------------------- <-80

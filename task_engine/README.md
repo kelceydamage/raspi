@@ -74,7 +74,7 @@ self.message = {
 	'role': <string>
 	'version': <string>,
 	'type': <string>,
-	'pack': <int>
+	'pack': <float>
 }
 ```
 
@@ -84,7 +84,7 @@ self.message = {
 	'task': <string>,
 	'args': <list>,
 	'kwargs': <dict>,
-	'pack': <int>
+	'pack': <float>
 }	
 ```
 
@@ -92,7 +92,7 @@ self.message = {
 ```bash
 self.message = {
 	'data': <any-format>,
-	'pack': <int>
+	'pack': <float>
 }	
 ```
 

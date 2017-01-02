@@ -67,40 +67,52 @@ REQUIRES:       host [ip/hostname]
         self.port = port
         self._context = zmq.Context()
         self.version = VERSION
+        self.meta = {
+            'id': '',
+            'role': 'responder',
+            'version': self.version,
+            'type': '',
+            'pack': ''
+            }
+
+    def log(self, action, message, _print):
+        if _print == True:
+            print('[WORKER-{0}({1})] {3}: {2}'.format(
+                self.pid, 
+                self.type, 
+                message,
+                action
+                )) 
+
+    def message(self, Frame, response):
+        """
+NAME:           message
+DESCRIPTION:    method for packing a message to be send ready.
+REQUIRES:       Frame [Frame classtype]
+                response [task output]
+        """
+        pack = time.time()
+        kwargs = {
+        'data': response,
+        'pack': pack
+        }
+        self.meta['pack'] = pack
+        meta = prepare(MetaFrame(pack), self.meta)
+        frame = prepare(Frame(pack), kwargs)
+        return [meta, frame]
 
     def start(self):
         """
 NAME:           start
 DESCRIPTION:    Start listening for tasks.
         """
-        print('[WORKER-{0}({1})] Listener online'.format(self.pid, self.type))
+        self.log('Listener online', '', True)
         while True:
             message = self._socket.recv_multipart()
-            print('[WORKER-{0}({1})] Received task: {2}'.format(
-                self.pid, 
-                self.type, 
-                message
-                ))
+            self.log('Received task', message, True)
             response = self.run_task(message[1])
-            pack = time.time()
-            kwargs = {
-            'id': self.id,
-            'role': 'responder',
-            'version': self.version,
-            'type': 'ACK',
-            'pack': pack
-            }
-            meta = prepare(MetaFrame(pack), kwargs)
-            kwargs = {
-            'data': response,
-            'pack': pack
-            }
-            data = prepare(DataFrame(pack), kwargs)
-            print('[WORKER-{0}({1})] Task complete: {2}'.format(
-                self.pid, 
-                self.type,
-                message
-                ))
+            message = self.message(DataFrame, response)
+            self.log('Task complete', message, True)
             self._socket.send_multipart([meta, data])
 
 class TaskWorker(Worker):
@@ -120,7 +132,8 @@ DESCRIPTION:    Initialize worker.
         self.functions = functions
         self.type = 'TASK'
         self.pid = pid
-        self.id = '{0}-{1}'.format(self.type, self.pid)
+        self.meta['id'] = '{0}-{1}'.format(self.type, self.pid)
+        self.meta['type'] = 'ACK'
 
     def run_task(self, request):
         """
@@ -157,7 +170,7 @@ DESCRIPTION:    Initialize worker.
         self._socket = self._context.socket(zmq.SUB)
         self.type = 'DATA'
         self.pid = pid
-        self.id = '{0}-{1}'.format(self.type, self.pid)
+        self.meta['id'] = '{0}-{1}'.format(self.type, self.pid)
 
     def run_task(self, task):
         pass

@@ -17,6 +17,9 @@
 
 # Doc
 #-------------------------------------------------------------------------------- <-80
+"""
+SUMMARY:        Demo task shipper
+"""
 
 # Imports
 #-------------------------------------------------------------------------------- <-80
@@ -77,20 +80,26 @@ kwargs = {
 }
 meta = prepare(MetaFrame(pack), kwargs)
 kwargs = {
-'task': 'task_count',
+'task': 'task_get_average',
 'args': [2, 3],
 'kwargs': {},
 'pack': pack
 }
 task = prepare(TaskFrame(pack), kwargs)
 
-for i in range(0, 1):
-    print('[CLIENT] Sending: {0}'.format([meta, task]))
-    result = task_queue(meta, task)
-    print('[CLIENT] Received: {0}'.format(result))
+results = []
+for i in range(0, 1000):
+    # print('[CLIENT] Sending: {0}'.format([meta, task]))
+    results.append(task_queue(meta, task))
+    # print('[CLIENT] Received: {0}'.format(result))
     end = time.time() - start
-    print('running {0} samples, took: {2}'.format(
-        10000,
-        result,
-        end
-        ))
+
+print('running {0} samples, took: {2}'.format(
+    1000,
+    results,
+    end
+    ))
+
+# enable to see output
+# print(results)
+
