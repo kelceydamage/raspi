@@ -35,6 +35,7 @@ os.sys.path.append(
         )
     )
 from conf.configuration import ENABLE_STDOUT
+from conf.configuration import ENABLE_DEBUG
 from common.datatypes import TaskFrame
 from common.datatypes import MetaFrame
 from common.datatypes import DataFrame
@@ -112,37 +113,30 @@ DESCRIPTION:    Start listening for tasks.
         """
         self.log('Listener online', '')
         while True:
-            m = self._socket.recv_multipart()
-            print('W-recv')
-            self._socket.send_multipart(m)
-            print('W-sent')
-            """
-            #message = self._socket.recv_multipart()
-            print(999999)
-            #message = self.recv_validation(message)
+            message = self._socket.recv_multipart()
+            message = self.recv_validation(message)
             if message == None:
                 message = self.message(b'ERROR: Invalid request', self.meta.serialize())
             else:
-                self.log('Received task', message[0])
-                #response = self.run_task(message[1:])
-                response = [{'done': 'done'}]
-                #message = self.message(response, message[0])
-                self.log('Task complete', message)
-            print(77)
+                meta = self.deserialize(message[0])
+                self.log(
+                    'Received task', 
+                    'Package {0}, Chunk {1}'.format(meta['serial'], meta['part']
+                    ))
+                #self.log('Received task', meta)
+                response = self.run_task(message[1:])
+                message = self.message(response, message[0])
+                #self.log('Task complete', message)
             self._socket.send_multipart(message)
-            """
+            
 
     def recv_validation(self, message):
         """
 NAME:           recv_validation
 DESCRIPTION:    Validate incoming requests
         """
-        print('WORKER: {0}'.format(message))
         val1 = False
         meta = json.loads(message[0])
-        print('@@@@@@@@@@')
-        print(meta['length'])
-        print(len(message[1:]))
         if meta['length'] == len(message[1:]):
             val1 = True
         if val1 == True:
@@ -162,7 +156,7 @@ DESCRIPTION:    A remote parallel task executor. Child of Worker.
 NAME:           __init__
 DESCRIPTION:    Initialize worker.
         """
-        self._socket = self._context.socket(zmq.ROUTER)
+        self._socket = self._context.socket(zmq.REP)
         self._socket.connect('tcp://{}:{}'.format(dealer, dealer_port))
         self.functions = functions
         self.type = 'TASK'

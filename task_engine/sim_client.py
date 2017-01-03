@@ -47,11 +47,11 @@ import md5
 #-------------------------------------------------------------------------------- <-80
 HOST = '127.0.0.1'
 PORT = 9000
-TASK_SOCKET = zmq.Context().socket(zmq.DEALER)
+TASK_SOCKET = zmq.Context().socket(zmq.REQ)
 TASK_SOCKET.connect('tcp://{}:{}'.format(HOST, PORT))
 Q = []
 
-VOLUME = 2
+VOLUME = 200
 # Classes
 #-------------------------------------------------------------------------------- <-80
 
@@ -75,7 +75,6 @@ REQUIRES:       task object [dict]
     m.message['serial'] = message_hash
     envelope = [m.serialize()] + q
     print('sending...')
-    print(envelope)
     TASK_SOCKET.send_multipart(envelope)
     results = TASK_SOCKET.recv_multipart()
     print('[CLIENT] recv: {0}'.format(results))
@@ -83,7 +82,7 @@ REQUIRES:       task object [dict]
 
 # Main
 #-------------------------------------------------------------------------------- <-
-"""
+
 start = time.time()
 s2 = time.time()
 results = []
@@ -101,7 +100,7 @@ M.message['role'] = 'requestor'
 T.message['pack'] = T.hash
 n = 0
 
-while n <= VOLUME:
+for i in range(VOLUME):
     #print(i)
     # prepare is a helper function that will enforce correct message structure. however for
     # slightly more performance you can just call json.dumps() om a dict and send.
@@ -116,15 +115,14 @@ while n <= VOLUME:
 #for i in range(0, 1000):
     #print('[CLIENT] Sending: {0}'.format([meta, task]))
     Q.append(T.serialize())
-    #if time.time() - start >= 0.0001:
-    M.message['pack'] = pack
-    print('send')
-    task_queue(M, Q)
-    start = time.time()
-    Q = []
-    pack = time.time()
-    print(n)
-    n += 1
+    if time.time() - start >= RESPONSE_TIME:
+        M.message['pack'] = pack
+        print('send')
+        task_queue(M, Q)
+        start = time.time()
+        Q = []
+        pack = time.time()
+        n += 1
     #print('[CLIENT] Received: {0}'.format(result))
 
 """
@@ -134,7 +132,8 @@ for i in range(100):
     results = TASK_SOCKET.recv_multipart()
     print(results)
     #end = time.time() - s2
-end = 0
+"""
+end = time.time() - s2
 print('running {0} samples, took: {2}'.format(
     VOLUME,
     results,

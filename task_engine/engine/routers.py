@@ -135,14 +135,12 @@ REQUIRES:       message
             meta = self.meta.serialize()
             message = header + [meta] + envelope
             self.backend.send_multipart(message)
-            print(222222222222222)
-            print(message)
 
         meta = self.deserialize(message[2])
         count = math.ceil(float(len(message[3:])) / CHUNKING_SIZE)
         if count < 1:
             count = 1
-        self.state[meta['serial']] = count
+        self.state[meta['serial']] = count + 1
         self.meta.message['serial'] = meta['serial']
         self.meta.message['pack'] = meta['pack']
         header = message[0:2]
@@ -155,59 +153,33 @@ REQUIRES:       message
                 envelope = []
                 n += 1
         if len(envelope) > 0:
-            print(111111)
             ship(header, envelope, n)
 
     def assemble(self, message):
         meta = self.deserialize(message[2])
-        print(meta['serial'])
         self.state[meta['serial']] -= 1
-        print(self.state)
-        print(3)
+        self.log('Forwarding', 'BACKEND', 'Assembling: {0}, Part: {1}'.format(
+            meta['serial'],
+            self.state[meta['serial']]
+            ))
         header = message[:2]
-        print(5)
         package = message[3:]
-        print(7)
-        print(11)
-        print(type(package))
-        print(type(self.buffer))
         self.buffer = self.buffer + package
-        print(15)
-        print(self.state[meta['serial']])
         if self.state[meta['serial']] == 0:
             meta['role'] = 'assembler'
-            print(22)
             meta['size'] = len(self.buffer)
             message = header + [self.serialize(meta)] + self.buffer
-            print(33)
             self.frontend.send_multipart(message)
             self.buffer = []
             del self.state[meta['serial']]
-            print(11111111111111)
+            self.log('Forwarding', 'BACKEND', 'Shipped: {0}'.format(
+                meta['serial']
+            ))
 
     def run_broker(self):
         """
 NAME:           run_broker
 DESCRIPTION:    Main routing component [loop]
-        """
-        while True:
-            socks = dict(self.poller.poll())
-            print(socks)
-            print(self.frontend)
-            print(self.backend)
-            if socks.get(self.frontend) == zmq.POLLIN:
-                message = self.frontend.recv_multipart(zmq.DONTWAIT)
-                #self.log('Forwarding', 'FRONTEND', message)
-                print(1)
-                try:
-                    self.backend.send_multipart(message)
-                except Exception, e:
-                    print(e)
-            if socks.get(self.backend) == zmq.POLLIN:
-                message = self.backend.recv_multipart(zmq.DONTWAIT)
-                #self.log('Forwarding', 'BACKEND', message)
-                print(2)
-                self.frontend.send_multipart(message)
         """
         while True:
             socks = dict(self.poller.poll())
@@ -221,24 +193,17 @@ DESCRIPTION:    Main routing component [loop]
                         )
                     self.chunk(message)
                 else:
-                    self.log('Forwarding', 'FRONTEND', message[2])
+                    #self.log('Forwarding', 'FRONTEND', message)
                     self.backend.send_multipart(message)
-                    print(333)
 
             if socks.get(self.backend) == zmq.POLLIN:
                 message = self.backend.recv_multipart()
                 #self.log('Forwarding', 'BACKEND', message[2])
-                self.log('Forwarding', 'BACKEND', message)
-                #print(self.state)
                 if CHUNKING == True:
-                    print('ASSEMBLY')
                     self.assemble(message)
-                    print('3333bbb')
                 else:
                     self.frontend.send_multipart(message)
-                    print('3333aaa')
-        """
-
+        
     def start(self):
         """
 NAME:
