@@ -70,7 +70,10 @@ DESCRIPTION:    Frame object for metadata
             'role': '',
             'version': '',
             'type': '',
-            'pack': ''
+            'pack': '',
+            'serial': '',
+            'part': 0,
+            'length': ''
         }
         self.digest()
 

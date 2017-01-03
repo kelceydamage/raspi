@@ -32,6 +32,7 @@ os.sys.path.append(
             )
         )
     )
+from conf.configuration import RESPONSE_TIME
 from common.datatypes import TaskFrame
 from common.datatypes import MetaFrame
 from common.datatypes import DataFrame
@@ -40,6 +41,7 @@ import requests
 import time
 import zmq
 import json
+import md5
 
 # Globals
 #-------------------------------------------------------------------------------- <-80
@@ -47,13 +49,18 @@ HOST = '127.0.0.1'
 PORT = 9000
 TASK_SOCKET = zmq.Context().socket(zmq.REQ)
 TASK_SOCKET.connect('tcp://{}:{}'.format(HOST, PORT))
+Q = []
 
+VOLUME = 200
 # Classes
 #-------------------------------------------------------------------------------- <-80
 
 # Functions
 #-------------------------------------------------------------------------------- <-80
-def task_queue(meta, task):
+def digest(message):
+    return md5.md5(''.join(message)).hexdigest()
+
+def task_queue(m, q):
     """
 NAME:           queue
 DESCRIPTION:    Return the result of running the task with the given 
@@ -63,47 +70,72 @@ REQUIRES:       task object [dict]
                 - args
                 - kwargs
     """
-    TASK_SOCKET.send_multipart([meta, task])
+    message_hash = digest(q)
+    m.message['length'] = len(q)
+    m.message['serial'] = message_hash
+    envelope = [m.serialize()] + q
+    print('sending...')
+    TASK_SOCKET.send_multipart(envelope)
     results = TASK_SOCKET.recv_multipart()
-    return results
+    print('[CLIENT] recv: {0}'.format(results))
+    #return results
 
 # Main
-#-------------------------------------------------------------------------------- <-80
-start = time.time()
+#-------------------------------------------------------------------------------- <-
 
+start = time.time()
+s2 = time.time()
+results = []
 # Pack is simply a time epoch which can be used to identify all frames in an envelope
 pack = time.time()
+T = TaskFrame(pack)
+M = MetaFrame(pack)
+M.digest()
+T.digest()
+M.message['id'] = 'CLIENT'
+M.message['version'] = 0.1
+M.message['type'] = 'REQ'
+M.message['role'] = 'requestor'
 
-kwargs = {
-'id': 'CLIENT',
-'role': 'requestor',
-'version': 0.1,
-'type': 'REQ',
-'pack': pack
-}
-# prepare is a helper function that will enforce correct message structure. however for
-# slightly more performance you can just call json.dumps() om a dict and send.
-meta = prepare(MetaFrame(pack), kwargs)
+T.message['pack'] = T.hash
+n = 0
 
-kwargs = {
-'ta': 'task_get_average',
-'args': [2, 3],
-'kwargs': {},
-'pack': pack
-}
-# prepare is a helper function that will enforce correct message structure. however for
-# slightly more performance you can just call json.dumps() om a dict and send.
-task = prepare(TaskFrame(pack), kwargs)
+for i in range(VOLUME):
+    #print(i)
+    # prepare is a helper function that will enforce correct message structure. however for
+    # slightly more performance you can just call json.dumps() om a dict and send.
+    T.message['task'] = 'task_get_average'
+    T.message['args'] = [2, 3]
+    T.message['kwargs'] = {}
+    T.message['pack'] = digest(str(time.time() - start))
 
-results = []
-for i in range(0, 1000):
-    # print('[CLIENT] Sending: {0}'.format([meta, task]))
-    results.append(task_queue(meta, task))
-    # print('[CLIENT] Received: {0}'.format(result))
-    end = time.time() - start
+    # prepare is a helper function that will enforce correct message structure. however for
+    # slightly more performance you can just call json.dumps() om a dict and send.
 
+#for i in range(0, 1000):
+    #print('[CLIENT] Sending: {0}'.format([meta, task]))
+    Q.append(T.serialize())
+    if time.time() - start >= RESPONSE_TIME:
+        M.message['pack'] = pack
+        print('send')
+        task_queue(M, Q)
+        start = time.time()
+        Q = []
+        pack = time.time()
+        n += 1
+    #print('[CLIENT] Received: {0}'.format(result))
+
+"""
+for i in range(100):
+    t = json.dumps({})
+    TASK_SOCKET.send_multipart([t])
+    results = TASK_SOCKET.recv_multipart()
+    print(results)
+    #end = time.time() - s2
+"""
+end = time.time() - s2
 print('running {0} samples, took: {2}'.format(
-    1000,
+    VOLUME,
     results,
     end
     ))

@@ -74,7 +74,10 @@ self.message = {
 	'role': <string>
 	'version': <string>,
 	'type': <string>,
-	'pack': <float>
+	'pack': <float>,
+	'length': <int>,
+	'serial': <md5-hash>,
+	'part': <int>
 }
 ```
 

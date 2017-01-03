@@ -35,6 +35,7 @@ os.sys.path.append(
         )
     )
 from conf.configuration import ENABLE_STDOUT
+from conf.configuration import ENABLE_DEBUG
 from common.datatypes import TaskFrame
 from common.datatypes import MetaFrame
 from common.datatypes import DataFrame
@@ -74,6 +75,9 @@ REQUIRES:       host [ip/hostname]
         self.meta = MetaFrame(0)
         self.meta.message['version'] = self.version
 
+    def deserialize(self, frame):
+        return json.loads(frame)
+
     def log(self, action, message):
         if ENABLE_STDOUT == True:
             print('[WORKER-{0}({1})] {3}: {2}'.format(
@@ -83,18 +87,22 @@ REQUIRES:       host [ip/hostname]
                 action
                 )) 
 
-    def message(self, Frame, response):
+    def message(self, response, meta):
         """
 NAME:           message
 DESCRIPTION:    method for packing a message to be send ready.
 REQUIRES:       Frame [Frame classtype]
                 response [task output]
         """
-        pack = time.time()
-        self.meta.message['pack'] = pack
-        meta = self.meta.serialize()
-        self.data.message['pack'] = pack
+        meta = self.deserialize(meta)
+        self.meta.message['serial'] = meta['serial']
+        self.meta.message['part'] = meta['part']
+        self.meta.message['pack'] = meta['pack']
+        self.meta.message['length'] = 1
+        self.data.message['pack'] = meta['pack']
+        self.data.message['size'] = len(response)
         self.data.message['data'] = response
+        meta = self.meta.serialize()
         frame = self.data.serialize()
         return [meta, frame]
 
@@ -108,13 +116,19 @@ DESCRIPTION:    Start listening for tasks.
             message = self._socket.recv_multipart()
             message = self.recv_validation(message)
             if message == None:
-                message = self.message(DataFrame, b'ERROR: Invalid request')
+                message = self.message(b'ERROR: Invalid request', self.meta.serialize())
             else:
-                self.log('Received task', message)
-                response = self.run_task(message[1])
-                message = self.message(DataFrame, response)
-                self.log('Task complete', message)
+                meta = self.deserialize(message[0])
+                self.log(
+                    'Received task', 
+                    'Package {0}, Chunk {1}'.format(meta['serial'], meta['part']
+                    ))
+                #self.log('Received task', meta)
+                response = self.run_task(message[1:])
+                message = self.message(response, message[0])
+                #self.log('Task complete', message)
             self._socket.send_multipart(message)
+            
 
     def recv_validation(self, message):
         """
@@ -122,15 +136,11 @@ NAME:           recv_validation
 DESCRIPTION:    Validate incoming requests
         """
         val1 = False
-        val2 = False
         meta = json.loads(message[0])
-        frame = json.loads(message[1])
-        if md5.md5(''.join(sorted(meta))).hexdigest() == self.meta.hash:
+        if meta['length'] == len(message[1:]):
             val1 = True
-        if md5.md5(''.join(sorted(frame))).hexdigest() == self.hash:
-            val2 = True
-        if val1 == True and val2 == True:
-            return [meta, frame]
+        if val1 == True:
+            return message
         else:
             return None
 
@@ -165,13 +175,24 @@ REQUIRES:       request message [JSON]
                 - args
                 - kwargs
         """
-        try:
-            task = request['task']
-            args = request['args']
-            kwargs = request['kwargs']
-            response = eval(self.functions[task])(*args, **kwargs)
-        except Exception, e:
-            response = 'ERROR: {0}'.format(e)
+        i = 0
+        response = []
+        for frame in request:
+            frame = self.deserialize(frame)
+            try:
+                task = frame['task']
+                args = frame['args']
+                kwargs = frame['kwargs']
+                response.append('job-{0}: {1}'.format(
+                    frame['pack'],
+                    eval(self.functions[task])(*args, **kwargs))
+                )
+            except Exception, e:
+                response.append('job-{0}: {1}'.format(
+                    frame['pack'],
+                    'ERROR: {0}'.format(e))
+                )
+            i += 1
         return response
 
 class DataWorker(Worker):
