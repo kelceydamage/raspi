@@ -42,8 +42,13 @@ Task Engine includes the following features
 
 |Feature|Default|Explanation|
 |-------|-------|-----------|
+|HOST|127.0.0.1|The interface ip that ZMQ runs on.|
+|TASK_WORKERS|2|The numbers of REQ-REP task workers to spawn.|
+|DATA_WORKERS|1|The number of PUB-SUB data workers to spawn.|
 |RESPONSE_TIME|0.005 (5ms)|A measure of how often the task queue is flushed to the task engine. This is configurable in the task engine configuration. Increasing the response time will increase IO throughput at the cost of task sluggishness. useful for complex action chains.|
-|CHUNKING|10|A routing and load-balancing option for determining the maximum tasks to be sent to a worker before switching workers. Increasing chunk size can increase throughput at the cost of balancing. It is possible to choke a worker is response time is too high and chunk size too large. When operating servos or other complex tasks a lesser throughput with quicker response is desired.|
+|CHUNKING|True|A routing and load-balancing option for determining the maximum tasks to be sent to a worker before switching workers.|
+|CHUNKING_SIZE|10|Increasing chunk size can increase throughput at the cost of balancing. It is possible to choke a worker is response time is too high and chunk size too large. When operating servos or other complex tasks a lesser throughput with quicker response is desired.|
+|ENABLE_STDOUT|True|Writes interactions to the terminal.|
 
 ## Interaction v0.1
 Task Engine starts a ROUTER and [n] number of DATA and TASK workers. Requestors send requests to the ROUTER as the frontend of the task engine.
