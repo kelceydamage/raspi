@@ -1,6 +1,8 @@
 # Task Engine
 Task Engine is a light-weight secure task-queuing system for Raspberry Pi robots.
 
+*Maximum IO = 4000 @ 30ms response-time & 50 chunk-size, on the Pi3 b+*
+
 ### Testing Task Engine
 To test Task Engine simply run the `start_engine.py` utility.
 
@@ -34,6 +36,14 @@ Sucessfully terminated process [7758]: <function start_worker at 0x76685a70>
 Sucessfully terminated process [7759]: <function start_worker at 0x76685a70>
 Sucessfully terminated process [7760]: <function start_worker at 0x76685a70>
 ```
+
+## Features
+Task Engine includes the following features
+
+|Feature|Default|Explanation|
+|-------|-------|-----------|
+|RESPONSE_TIME|0.005 (5ms)|A measure of how often the task queue is flushed to the task engine. This is configurable in the task engine configuration. Increasing the response time will increase IO throughput at the cost of task sluggishness. useful for complex action chains.|
+|CHUNKING|10|A routing and load-balancing option for determining the maximum tasks to be sent to a worker before switching workers. Increasing chunk size can increase throughput at the cost of balancing. It is possible to choke a worker is response time is too high and chunk size too large. When operating servos or other complex tasks a lesser throughput with quicker response is desired.|
 
 ## Interaction v0.1
 Task Engine starts a ROUTER and [n] number of DATA and TASK workers. Requestors send requests to the ROUTER as the frontend of the task engine.
@@ -87,7 +97,7 @@ self.message = {
 	'task': <string>,
 	'args': <list>,
 	'kwargs': <dict>,
-	'pack': <float>
+	'pack': <md5-hash>
 }	
 ```
 
