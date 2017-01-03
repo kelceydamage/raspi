@@ -26,12 +26,33 @@
 
 # Globals
 #-------------------------------------------------------------------------------- <-80
+# Workers
 HOST = '127.0.0.1'
 STARTING_PORT = 10000
-TASK_WORKERS = 2
-DATA_WORKERS = 1
+TASK_WORKERS = 1
+DATA_WORKERS = 0
+RESPONSE_TIME = 0.005 	# Controls the rate at which tasks are sent to the workers,
+					  	# and in doing so, the size of the queue. 
+					  	# Example: 
+					  	#		1000 req @0.01 = ~100 tasks per queue
+					  	#		1000 reg @0.001	= ~10 tasks per queue
+					  	# A higher response time increases throughput at the cost of
+					  	# the systems responsiveness.
+
+# Router
+CHUNKING = False			# Chunking determines if and how much the router breaks up 
+						# queues in order the better balance worker loads.
+						# Example:
+						#		chunking = 10 will break up all queues int ~ 10 tasks
+						# 		per worker. This will negativly affect response time
+						#		since it adds delay at the router, and extra network 
+						#		activity.
+						# RESPONSE_TIME and CHUNKING should be balanced to get an 
+						# Optimal throughput and worker load balance.	
+CHUNKING_SIZE = 100000
 
 # Logging
+#ENABLE_STDOUT = False
 ENABLE_STDOUT = True
 
 # Classes

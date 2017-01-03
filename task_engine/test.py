@@ -26,13 +26,17 @@
 import os
 os.sys.path.append(
     os.path.dirname(
+        os.path.dirname(
 
-
-        os.path.abspath(__file__)
-
+            os.path.abspath(__file__)
+            )
         )
     )
-from registry.registry import functions, load_tasks
+from common.datatypes import TaskFrame
+from common.datatypes import MetaFrame
+from common.datatypes import DataFrame
+from common.datatypes import prepare
+import time
 
 # Globals
 #-------------------------------------------------------------------------------- <-80
@@ -46,5 +50,19 @@ from registry.registry import functions, load_tasks
 # Main
 #-------------------------------------------------------------------------------- <-80
 if __name__ == '__main__':
-    print functions
-    print load_tasks('../tasks')
+    start = time.time()
+    # Pack is simply a time epoch which can be used to identify all frames in an envelope
+    pack = time.time()
+    T = TaskFrame(pack)
+    M = MetaFrame(pack)
+    M.digest()
+    #meta = prepare(M, kwargs)
+    M.message['pack'] = M.hash
+    M.message['id'] = 'CLIENT'
+    M.message['version'] = 0.1
+    M.message['type'] = 'REQ'
+    M.message['role'] = 'requestor'
+    print M.serialize()
+    print time.time() - start
+
+    print 100 / 10
