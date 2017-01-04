@@ -126,7 +126,7 @@ DESCRIPTION:    Start listening for tasks.
                 #self.log('Received task', meta)
                 response = self.run_task(message[1:])
                 message = self.message(response, message[0])
-                #self.log('Task complete', message)
+                #self.log('Task complete', message[0])
             self._socket.send_multipart(message)
             
 
