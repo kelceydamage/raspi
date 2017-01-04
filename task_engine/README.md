@@ -9,7 +9,8 @@ To test Task Engine simply run the `start_engine.py` utility.
 when running the `start_engine.py` script you should see an output similar to below if using the default configuration.
 ```bash
 [REGISTERED-TASKS]:
-[-] task_count
+[-] task_get_count
+[-] task_get_average
 ------------------
 ### Type [ctrl-c] to exit and shutdown workers ###
 Starting process [20709]: <function start_worker at 0x76725e30>
