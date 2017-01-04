@@ -193,12 +193,12 @@ DESCRIPTION:    Main routing component [loop]
                         )
                     self.chunk(message)
                 else:
-                    #self.log('Forwarding', 'FRONTEND', message)
+                    self.log('Forwarding', 'FRONTEND', message[2])
                     self.backend.send_multipart(message)
 
             if socks.get(self.backend) == zmq.POLLIN:
                 message = self.backend.recv_multipart()
-                #self.log('Forwarding', 'BACKEND', message[2])
+                self.log('Forwarding', 'BACKEND', message[2])
                 if CHUNKING == True:
                     self.assemble(message)
                 else:

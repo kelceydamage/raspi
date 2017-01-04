@@ -51,7 +51,7 @@ TASK_SOCKET = zmq.Context().socket(zmq.REQ)
 TASK_SOCKET.connect('tcp://{}:{}'.format(HOST, PORT))
 Q = []
 
-VOLUME = 200
+VOLUME = 70
 # Classes
 #-------------------------------------------------------------------------------- <-80
 
