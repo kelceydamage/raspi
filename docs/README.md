@@ -4,7 +4,9 @@ Raspi is a library of light-weight services for programming Raspberry Pi's.
 The goal of the `Raspi` platform is to create an extensable, scalable, hardware automation platform capable of realtime evaluation of it's state. The platform should be runnable on a single Raspberry Pi with exceptable performance, and scalable to a multiple Pi scenario sharing co-state and 'work-together' task orientation.
 
 ### Some early design considerations
-* The initial hardware platform is Pi3 + MegaPi industrial IO.
+* The initial hardware platform is Pi3
+  * Using MegaPi industrial for DC motor drive
+  * Using GrovePi for instrumentation expansion
 * ARMv7 Processor rev 4 (v7l)
 * Each component of `Raspi` should be self contained and plug-in replaceable/extensible. For lack or a better term, isolated/containerized.
 * intercommunication message serialization to start off as JSON, but will move to msgpack if necessary.
@@ -85,4 +87,4 @@ pyzmq
 |router: frontend|9000||
 |router: backend|9001||
 
-### More to follow....
+### More to follow...
