@@ -91,7 +91,7 @@ class ColorSensor(object):
 #-------------------------------------------------------------------------------- <-80
 def print_color(results):
     print('----------------------------------------')
-    print ("Instrument Read:")
+    print("Instrument Read:")
     print("RGB: {0},{1},{2} - Clear {3}".format(
         results['rgb'][0], 
         results['rgb'][1], 

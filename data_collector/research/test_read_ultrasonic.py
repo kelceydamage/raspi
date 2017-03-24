@@ -32,14 +32,13 @@ os.sys.path.append(
             )
         )
     )
-from interfaces.interface_color import ColorSensor
-from interfaces.interface_color import print_color
+from interfaces.interface_ultrasonic import UtrasonicSensor
+from interfaces.interface_ultrasonic import print_ultrasonic
 import time
 
 # Globals
 #-------------------------------------------------------------------------------- <-80
-INTERVAL = 100 		# ms
-GAIN = 64 			# Supported gain/prescalar multipliers: 1, 4, 16 and 64
+INTERVAL = 100		# ms
 
 # Classes
 #-------------------------------------------------------------------------------- <-80
@@ -50,14 +49,12 @@ GAIN = 64 			# Supported gain/prescalar multipliers: 1, 4, 16 and 64
 # Main
 #-------------------------------------------------------------------------------- <-80
 if __name__ == '__main__':
-	color_sensor = ColorSensor()
-	color_sensor.configure(INTERVAL, GAIN, continuous=True)
-	color_sensor.start()
+	ultrasonic_sensor = UtrasonicSensor()
 
 	i = 0
 	while i < 30:
 		time.sleep(float(INTERVAL) / float(1000)) # seconds
-		print_color(color_sensor.read(rgb=True, cie=True))
+		print_ultrasonic(ultrasonic_sensor.read())
 		i += 1
 
-	color_sensor.stop()
+	ultrasonic_sensor.stop()

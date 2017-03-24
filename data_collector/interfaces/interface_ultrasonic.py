@@ -18,7 +18,7 @@
 # Doc
 #-------------------------------------------------------------------------------- <-80
 """
-Sample collector for reading instrument data
+
 """
 
 # Imports
@@ -28,36 +28,49 @@ import os
 os.sys.path.append(
     os.path.dirname(
         os.path.dirname(
-            os.path.abspath(__file__)
+            os.path.dirname(
+                os.path.abspath(__file__)
+                )
             )
         )
     )
-from interfaces.interface_color import ColorSensor
-from interfaces.interface_color import print_color
-import time
+from sensors.grove.raw.ultrasonic import GroveDigitalUltrasonicSensor
 
 # Globals
 #-------------------------------------------------------------------------------- <-80
-INTERVAL = 100 		# ms
-GAIN = 64 			# Supported gain/prescalar multipliers: 1, 4, 16 and 64
+ULTRASONIC_DRIVER = GroveDigitalUltrasonicSensor()
 
 # Classes
 #-------------------------------------------------------------------------------- <-80
+class UtrasonicSensor(object):
+    """
+    NAME: UtrasonicSensor
+    DESCRIPTION:
+    """
+    def __init__(self):
+        super(UtrasonicSensor, self).__init__()
+        self.instrument = ULTRASONIC_DRIVER
+
+    def read(self):
+        output = {
+            'distance': None
+            }
+        output['distance'] = self.instrument.measurementInCM()
+        return output
+        
+    def stop(self):
+        self.instrument.gpio.cleanup()
 
 # Functions
 #-------------------------------------------------------------------------------- <-80
+def print_ultrasonic(results):
+    print('----------------------------------------')
+    print("Instrument Read:")
+    print("Distance : {0} CM".format(
+        results['distance']
+        )
+    )
 
 # Main
 #-------------------------------------------------------------------------------- <-80
-if __name__ == '__main__':
-	color_sensor = ColorSensor()
-	color_sensor.configure(INTERVAL, GAIN, continuous=True)
-	color_sensor.start()
-
-	i = 0
-	while i < 30:
-		time.sleep(float(INTERVAL) / float(1000)) # seconds
-		print_color(color_sensor.read(rgb=True, cie=True))
-		i += 1
-
-	color_sensor.stop()
+    
