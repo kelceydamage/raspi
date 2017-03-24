@@ -5,8 +5,8 @@ The goal of the `Raspi` platform is to create an extensable, scalable, hardware 
 
 ### Some early design considerations
 * The initial hardware platform is Pi3
- * Using MegaPi industrial for DC motor drive
- * Using GrovePi for instrumeentation expansion
+** Using MegaPi industrial for DC motor drive
+** Using GrovePi for instrumeentation expansion
 * ARMv7 Processor rev 4 (v7l)
 * Each component of `Raspi` should be self contained and plug-in replaceable/extensible. For lack or a better term, isolated/containerized.
 * intercommunication message serialization to start off as JSON, but will move to msgpack if necessary.
