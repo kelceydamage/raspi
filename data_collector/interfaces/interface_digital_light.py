@@ -45,7 +45,7 @@ COLOR_SENSOR_DRIVER = GroveI2CDigitalLightSensor()
 #-------------------------------------------------------------------------------- <-80
 class DigitalLightSensor(object):
     """
-    NAME:               ColorSensor
+    NAME:               DigitalLightSensor
     DESCRIPTION:
                         It is important to cut power to the sensor when not reading 
                         from it. The configure method has power controls built in to 

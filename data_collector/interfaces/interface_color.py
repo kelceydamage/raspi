@@ -45,15 +45,28 @@ COLOR_SENSOR_DRIVER = GroveI2CColorSensor()
 #-------------------------------------------------------------------------------- <-80
 class ColorSensor(object):
     """
-    NAME: ColorSensor
+    NAME:               ColorSensor
     DESCRIPTION:
+                        It is important to cut power to the sensor when not reading 
+                        from it. The configure method has power controls built in to 
+                        ensure a power cycle for any config changes
+
+    .configure          to initialize the sensor
+        duration        set to either: 12 (12ms), 100 (100ms), 400 (400ms)
+        prescalar       set to either: 1 (1x), 4 (4x), 16 (16x), 64 (64x)
+        continuous      enable to allow continuous sensor integration
+    .start()            to start power to the sensor
+    .read()             to receive sensor output
+        closest=True    to receive nearest color name
+        rgb=True        to receive rgba values for color
+        cie=True        to receive cie coordinates for color
+    .stop()             to cut power to the sensor
     """
     def __init__(self):
         super(ColorSensor, self).__init__()
         self.instrument = COLOR_SENSOR_DRIVER
 
     def configure(self, duration, prescalar, continuous=False):
-        # Supported gain/prescalar multipliers: 1, 4, 16 and 64
         self.continuous = continuous
         if self.continuous:
             self.instrument.use_continuous_integration(duration)
@@ -65,7 +78,6 @@ class ColorSensor(object):
         self.instrument.start_integration()
 
     def stop(self):
-        # Stop integration before changing settings
         self.instrument.stop_integration()
 
     def read(self, rgb=False, cie=False, closest=True):
