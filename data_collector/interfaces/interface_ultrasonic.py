@@ -44,8 +44,14 @@ ULTRASONIC_DRIVER = GroveDigitalUltrasonicSensor()
 #-------------------------------------------------------------------------------- <-80
 class UtrasonicSensor(object):
     """
-    NAME: UtrasonicSensor
+    NAME:               UtrasonicSensor
     DESCRIPTION:
+                        It is important to cut power to the sensor when not reading 
+                        from it. The configure method has power controls built in to 
+                        ensure a power cycle for any config changes
+
+    .read()             to receive sensor output for distance to nearest object
+    .stop()             to cut power to the sensor, cleanup GPIO
     """
     def __init__(self):
         super(UtrasonicSensor, self).__init__()

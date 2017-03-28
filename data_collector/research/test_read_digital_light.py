@@ -38,10 +38,13 @@ import time
 
 # Globals
 #-------------------------------------------------------------------------------- <-80
-INTERVAL = 100		# ms
-TIMING_MODE	= 1		# supported 0, 1, 2
-GAIN_MODE = 1		# supported 0, 1, 2
-					# maps to gain/prescalar multipliers: 1, 4, 16
+INTERVAL = 100          # ms
+TIMING_MODE = 1         # supported 0, 1, 2
+                        # maps to integrations timings: 13.7ms, 101ms, 403ms
+GAIN_MODE = 1           # supported 0, 1, 2, 3
+                        # maps to gain/prescalar multipliers: 1, 4, 16, 64
+AUTO = True             # auto configure gain and timing
+NIGHT_VISION = False    # max out gain an timing for low light usage
 
 # Classes
 #-------------------------------------------------------------------------------- <-80
@@ -52,17 +55,25 @@ GAIN_MODE = 1		# supported 0, 1, 2
 # Main
 #-------------------------------------------------------------------------------- <-80
 if __name__ == '__main__':
-	digital_light_sensor = DigitalLightSensor()
-	digital_light_sensor.configure(TIMING_MODE, GAIN_MODE)
+    digital_light_sensor = DigitalLightSensor()
+    digital_light_sensor.configure(
+        duration=TIMING_MODE, 
+        prescalar=GAIN_MODE, 
+        auto=AUTO,
+        night_vision=NIGHT_VISION
+        )
+    digital_light_sensor.start()
 
-	i = 0
-	while i < 30:
-		time.sleep(float(INTERVAL) / float(1000)) # seconds
-		print_digital_light(digital_light_sensor.read(
-			lux=True, 
-			vis_ir=True, 
-			ir=True, 
-			gain=True, 
-			timing=True
-			))
-		i += 1
+    i = 0
+    while i < 30:
+        time.sleep(float(INTERVAL) / float(1000)) # seconds
+        print_digital_light(digital_light_sensor.read(
+            lux=True, 
+            vis_ir=True, 
+            ir=True, 
+            gain=True, 
+            timing=True
+            ))
+        i += 1
+
+    digital_light_sensor.stop()
