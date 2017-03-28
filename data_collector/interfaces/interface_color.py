@@ -51,16 +51,16 @@ class ColorSensor(object):
                         from it. The configure method has power controls built in to 
                         ensure a power cycle for any config changes
 
-    .configure          to initialize the sensor
-        duration        set to either: 12 (12ms), 100 (100ms), 400 (400ms)
-        prescalar       set to either: 1 (1x), 4 (4x), 16 (16x), 64 (64x)
-        continuous      enable to allow continuous sensor integration
-    .start()            to start power to the sensor
-    .read()             to receive sensor output
-        closest=True    to receive nearest color name
-        rgb=True        to receive rgba values for color
-        cie=True        to receive cie coordinates for color
-    .stop()             to cut power to the sensor, cleanup GPIO
+    .configure                  to initialize the sensor
+        duration        int     set to either: 12 (12ms), 100 (100ms), 400 (400ms)
+        prescalar       int     set to either: 1 (1x), 4 (4x), 16 (16x), 64 (64x)
+        continuous      bool    enable to allow continuous sensor integration
+    .start()                    to start power to the sensor
+    .read()                     to receive sensor output
+        closest         bool    to receive nearest color name
+        rgb             bool    to receive rgba values for color
+        cie             bool    to receive cie coordinates for color
+    .stop()                     to cut power to the sensor, cleanup GPIO
     """
     def __init__(self):
         super(ColorSensor, self).__init__()

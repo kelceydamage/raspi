@@ -50,6 +50,7 @@ INTERVAL = 100		# ms
 #-------------------------------------------------------------------------------- <-80
 if __name__ == '__main__':
 	ultrasonic_sensor = UtrasonicSensor()
+	print(ultrasonic_sensor.__doc__)
 
 	i = 0
 	while i < 30:

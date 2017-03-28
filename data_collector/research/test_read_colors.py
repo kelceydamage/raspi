@@ -51,6 +51,7 @@ GAIN = 64 			# Supported gain/prescalar multipliers: 1, 4, 16 and 64
 #-------------------------------------------------------------------------------- <-80
 if __name__ == '__main__':
 	color_sensor = ColorSensor()
+	print(color_sensor.__doc__)
 	color_sensor.configure(INTERVAL, GAIN, continuous=True)
 	color_sensor.start()
 

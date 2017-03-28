@@ -56,6 +56,7 @@ NIGHT_VISION = False    # max out gain an timing for low light usage
 #-------------------------------------------------------------------------------- <-80
 if __name__ == '__main__':
     digital_light_sensor = DigitalLightSensor()
+    print(digital_light_sensor.__doc__)
     digital_light_sensor.configure(
         duration=TIMING_MODE, 
         prescalar=GAIN_MODE, 
