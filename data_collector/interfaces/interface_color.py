@@ -60,7 +60,7 @@ class ColorSensor(object):
         closest=True    to receive nearest color name
         rgb=True        to receive rgba values for color
         cie=True        to receive cie coordinates for color
-    .stop()             to cut power to the sensor
+    .stop()             to cut power to the sensor, cleanup GPIO
     """
     def __init__(self):
         super(ColorSensor, self).__init__()

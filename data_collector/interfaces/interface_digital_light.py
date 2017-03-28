@@ -63,7 +63,7 @@ class DigitalLightSensor(object):
         ir=True         to receive infrared illuminance
         gain=True       to receive current gain level
         timing=True     to receive the current integration timing
-    .stop()             to cut power to the sensor
+    .stop()             to cut power to the sensor, cleanup GPIO
     """
     def __init__(self):
         super(DigitalLightSensor, self).__init__()
