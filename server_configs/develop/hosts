@@ -1,0 +1,19 @@
+127.0.0.1	localhost
+127.0.1.1	LAPTOP-0E5K57RP.localdomain	LAPTOP-0E5K57RP
+
+192.168.1.118   drone
+192.168.1.128   r0 #node0 10.10.0.1 
+192.168.1.105	r1 #node1 10.10.0.2
+192.168.1.108	r2 #node2 10.10.0.3
+192.168.1.129   r3 #node3 10.10.0.4
+192.168.1.104   r4 #node4 10.10.0.5
+192.168.1.112   r5 #node5 10.10.0.6
+192.168.1.117   r6 #node6 10.10.0.7
+192.168.1.133   r7 #node7 10.10.0.8
+
+# The following lines are desirable for IPv6 capable hosts
+::1     ip6-localhost ip6-loopback
+fe00::0 ip6-localnet
+ff00::0 ip6-mcastprefix
+ff02::1 ip6-allnodes
+ff02::2 ip6-allrouters
