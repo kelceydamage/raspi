@@ -18,13 +18,21 @@
 # Doc
 #-------------------------------------------------------------------------------- <-80
 """
-This interface is for tracked movement.
+This interface is for movement.
 
 Controls for movement expecct that distance and speed are used to calculate duration
 which then needs to be set with Movement().duration.
 
 Movement response time is 500ms so set Movement().accel_interval to a value that
 will allow you to reach your distance and adjust Movement().duration accordingly.
+
+.stop() is called explicitly in the movement infterfaces. This is done to avoid damage 
+to certain motor types. This means that when chaining interfaces to create complex 
+movement patterns there will be a RESPONSE_TIME pause between interfaces.
+
+Still needs to call a task client. Currently it is calling the driver directly. 
+In the next version it will call the Task Engine and the task nodes will talk to the 
+drivers.
 
 """
 
@@ -45,6 +53,10 @@ MOTOR_FAILURE       = NotImplementedError
 
 TRACKED             = True
 RESPONSE_TIME       = 0.5 # 500ms
+
+# Motor ports. Default settings are for MegaPi
+LEFT_MOTOR          = 1
+RIGHT_MOTOR         = 2
 
 # Classes
 #-------------------------------------------------------------------------------- <-80
@@ -128,8 +140,8 @@ class Movement(object):
                     acceleration = False
             velocity = self.movement_type(direction, speed)
             try:
-                self.bot.motorRun(1, velocity[0])
-                self.bot.motorRun(2, velocity[1])
+                self.bot.motorRun(LEFT_MOTOR, velocity[0])
+                self.bot.motorRun(RIGHT_MOTOR, velocity[1])
             except Exception, e:
                 print(MOTOR_FAILURE)
                 print(velocity)
@@ -139,15 +151,19 @@ class Movement(object):
 
     def forward(self, speed, acceleration=False, initial=None):
         self.move(speed, initial, FORWARD, acceleration)
+        self.stop()
 
     def reverse(self, speed, acceleration=False, initial=None):
         self.move(speed, initial, REVERSE, acceleration)
+        self.stop()
 
     def turn_left(self, speed, acceleration=False, initial=None):
         self.move(speed, initial, LEFT, acceleration)
+        self.stop()
 
     def turn_right(self, speed, acceleration=False, initial=None):
         self.move(speed, initial, RIGHT, acceleration)
+        self.stop()
 
     def stop(self):
         self.duration = 0
