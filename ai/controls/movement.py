@@ -30,9 +30,11 @@ will allow you to reach your distance and adjust Movement().duration accordingly
 to certain motor types. This means that when chaining interfaces to create complex 
 movement patterns there will be a RESPONSE_TIME pause between interfaces.
 
-Still needs to call a task client. Currently it is calling the driver directly. 
-In the next version it will call the Task Engine and the task nodes will talk to the 
-drivers.
+Added support for accel and deccel on turns.
+
+Still needs to call a task client. Currently it is calling the driver directly in the 
+.register_movement() method. In the final version it will call the Task Engine and the 
+task nodes will talk to the drivers.
 
 """
 
@@ -48,6 +50,12 @@ FORWARD             = 0
 REVERSE             = 1
 LEFT                = 2
 RIGHT               = 3
+STOP                = 4
+REVLEFT             = 5
+REVRIGHT            = 6
+
+INWARDS             = 7
+OUTWARDS            = 8
 
 MOTOR_FAILURE       = NotImplementedError
 
@@ -78,9 +86,12 @@ class Movement(object):
                                 robot drives inverted
         left_motor      int     speed value for left motor channel
         right_motor     int     speed value for right motor channel
-    .accelerate()               generator for producing the aceleration speed increments
+    .accelerate()               generator for producing the acceleration speed increments
         initial         int     the initial speed the motor will start acceleration from
         speed           int     the final requested cruising speed
+    .deccelerate()            generator for producing the decceleration speed increments
+        initial         int     the final requested cruising speed
+        speed           int     the initial speed the motor will start acceleration from
     .movement_type()            provided by sub-classes and determins movement patterns
         direction       int     specifies which polarity configuration and modifiers are 
                                 used on the motor speed
@@ -91,6 +102,10 @@ class Movement(object):
         direction       int     specifies which polarity configuration and modifiers are 
                                 used on the motor speed
         acceleration    bool    enable acceleration
+        decceleration   bool    enable decceleration
+    .register_movement()        inteface for sending movemeent command to driver/task 
+                                engine
+        velocity        tuple   left motor and right motor power values
 
     INTERFACES:
                         The following are default interfaces and have the same required
@@ -104,7 +119,9 @@ class Movement(object):
     .reverse()                  provided default movement interface
     .turn_left()                provided default movement interface
     .turn_right()               provided default movement interface
+    .update()                   provided default continuous movement interface
     .stop()                     provided default movement interface
+    .graduated_stop()           provided default movement interface
 
     """
     def __init__(self):
@@ -124,50 +141,100 @@ class Movement(object):
         for i in range(initial, speed, self.accel_interval):
             yield i
 
+    def deccelerate(self, initial, speed):
+        for i in range(speed, initial, self.accel_interval * -1):
+            yield i
+
     def movement_type(self, direction, speed):
         return (0, 0)
 
-    def move(self, speed, initial, direction, acceleration):
+    def move(self, speed, initial=None, direction=None, acceleration=False, decceleration=False, gearing=1):
+        if direction == STOP:
+            direction = self.last_direction
+            self.duration = self.last_speed / self.accel_interval
         if acceleration == True:
-            speed_generator = self.accelerate(initial, speed)
+            if initial == None:
+                initial = self.last_speed
+            speed_up_generator = self.accelerate(initial, speed)
+        elif decceleration == True:
+            if speed == None:
+                speed = self.last_speed
+            speed_down_generator = self.deccelerate(initial, speed)
         i = 0
         while i <= self.duration:
             start_time = time.time()
             if acceleration == True:
                 try:
-                    speed = next(speed_generator)
+                    speed = next(speed_up_generator)
                 except StopIteration:
                     acceleration = False
-            velocity = self.movement_type(direction, speed)
+            elif decceleration == True:
+                try:
+                    speed = next(speed_down_generator)
+                except StopIteration:
+                    decceleration = False
+            velocity = self.movement_type(direction, speed, gearing)
             try:
-                self.bot.motorRun(LEFT_MOTOR, velocity[0])
-                self.bot.motorRun(RIGHT_MOTOR, velocity[1])
+                self.register_movement(velocity)
             except Exception, e:
                 print(MOTOR_FAILURE)
                 print(velocity)
+            self.last_speed = speed
+            if direction != None:
+                self.last_direction = direction
             i += 1
             end_time = time.time() - start_time
             time.sleep(RESPONSE_TIME - end_time)
 
-    def forward(self, speed, acceleration=False, initial=None):
-        self.move(speed, initial, FORWARD, acceleration)
-        self.stop()
+    def register_movement(self, velocity):
+        self.bot.motorRun(LEFT_MOTOR, velocity[0])
+        self.bot.motorRun(RIGHT_MOTOR, velocity[1])
 
-    def reverse(self, speed, acceleration=False, initial=None):
-        self.move(speed, initial, REVERSE, acceleration)
-        self.stop()
+    def forward(self, speed, acceleration=False, decceleration=False, initial=None):
+        self.move(speed, initial, FORWARD, acceleration, decceleration)
+        if acceleration or decceleration:
+            self.graduated_stop()
+        else:
+            self.stop()
 
-    def turn_left(self, speed, acceleration=False, initial=None):
-        self.move(speed, initial, LEFT, acceleration)
-        self.stop()
+    def reverse(self, speed, acceleration=False, decceleration=False, initial=None):
+        self.move(speed, initial, REVERSE, acceleration, decceleration)
+        if acceleration or decceleration:
+            self.graduated_stop()
+        else:
+            self.stop()
 
-    def turn_right(self, speed, acceleration=False, initial=None):
-        self.move(speed, initial, RIGHT, acceleration)
-        self.stop()
+    def turn_left(self, speed, acceleration=False, decceleration=False, initial=None):
+        self.move(speed, initial, LEFT, acceleration, decceleration)
+        if acceleration or decceleration:
+            self.graduated_stop()
+        else:
+            self.stop()
+
+    def turn_right(self, speed, acceleration=False, decceleration=False, initial=None):
+        self.move(speed, initial, RIGHT, acceleration, decceleration)
+        if acceleration == True or decceleration == True:
+            self.graduated_stop()
+        else:
+            self.stop()
+
+    def update(self, args):
+        speed           = args[0]
+        initial         = args[1]
+        direction       = args[2]
+        acceleration    = args[3]
+        decceleration   = args[4]
+        gearing         = args[5]
+        self.duration   = 0
+        self.move(speed, initial, direction, acceleration, decceleration, gearing)
 
     def stop(self):
         self.duration = 0
-        self.move(0, 0, None, False)
+        self.move(0)
+
+    def graduated_stop(self):
+        self.move(None, direction=STOP, initial=0, decceleration=True)
+        self.stop()
 
 class TrackedMovement(Movement):
     """
@@ -188,7 +255,7 @@ class TrackedMovement(Movement):
     def __init__(self):
         super(TrackedMovement, self).__init__()
 
-    def movement_type(self, direction, speed):
+    def movement_type(self, direction, speed, gearing):
         if direction == FORWARD:
             return self.polarity(speed, speed * -1)
         elif direction == REVERSE:
@@ -200,6 +267,50 @@ class TrackedMovement(Movement):
         else:
             return (0, 0)
 
+class ContinuousTrackedMovement(Movement):
+    """
+    NAME:               ContinuousTrackedMovement
+    DESCRIPTION:        
+                        Supplies the only four modes required for continuous movement
+                        LEFT, RIGHT, REVLEFT, REVRIGHT. This means only one of four
+                        possible biases is required to move in 2 dimentional space. 
+                        the gearing value in fractions can be used to modify the
+                        trajectory into a turn. With a gearing of 1 the two motors
+                        will receive the same drive power. This enables minor course 
+                        corrections if veerage occurs, and can rapidly update course
+                        based on sensor data. also .stop()/.graduated_stop() now act
+                        as idlers.
+
+    .graduated_turn() 
+    .movement_type()            speed and polarity modifiers for moters based on 
+                                definened movement types
+        direction       int     specifies which polarity configuration and modifiers are 
+                                used on the motor speed
+        speed           int     the requested cruising speed
+        gearing         frac    the ratio used to steer the motors expressed as a fraction
+                                of floats. [1.0/2.0, 1.0/4.0, 7.0/32.0, ...]
+    """
+    def __init__(self):
+        super(ContinuousTrackedMovement, self).__init__()
+
+    def graduated_turn(self, fraction, stepping, direction):
+        if direction == OUTWARDS:
+            return fraction / stepping
+        elif direction == INWARDS:
+            return fraction * stepping
+
+    def movement_type(self, direction, speed, gearing):
+        if direction == REVLEFT:
+            return self.polarity(speed * -1, int((speed * gearing)))
+        elif direction == REVRIGHT:
+            return self.polarity(int((speed * gearing)) * -1, speed)
+        elif direction == LEFT:
+            return self.polarity(speed, int((speed * gearing)) * -1)
+        elif direction == RIGHT:
+            return self.polarity(int((speed * gearing)), speed * -1)
+        else:
+            return (0, 0)
+
 # Functions
 #-------------------------------------------------------------------------------- <-80
 
@@ -207,31 +318,48 @@ class TrackedMovement(Movement):
 #-------------------------------------------------------------------------------- <-80
 # Example on how to use
 if __name__ == '__main__':
-    M = TrackedMovement()
+    M = ContinuousTrackedMovement()
     # M.bot = SomeBot()
     # Set the speed increments for accelerating
     M.accel_interval = 1
     # Set the duration for the movement window
-    M.duration = 5
 
+    '''
+    # Basic movement interface.
+    M.duration = 5
     M.forward(
         speed=50, 
         acceleration=True, 
         initial=10
         )
+    M.duration = 5
     M.reverse(
         speed=50, 
-        acceleration=True, 
+        decceleration=True, 
         initial=10
         )
+    M.duration = 5
     M.turn_left(
         speed=50, 
         acceleration=True, 
         initial=10
         )
-    M.turn_right(
-        speed=50, 
-        acceleration=True, 
-        initial=10
-        )
+    '''
+
+    # Continuous movement interface. Note the explicit call of .stop() to terminate voltage
+    # to te engine.
+    gearing = 1.0/32.0
+    while gearing < 1.0/2.0:
+        gearing = M.graduated_turn(gearing, 2, INWARDS)
+        M.update(
+            [20, 0, LEFT, False, False, gearing]
+            )
+
+    gearing = 1.0/1.0
+    while gearing > 1.0/32.0:
+        gearing = M.graduated_turn(gearing, 2, OUTWARDS)
+        M.update(
+            [20, 0, LEFT, False, False, gearing]
+            )
+    time.sleep(3)
     M.stop()
