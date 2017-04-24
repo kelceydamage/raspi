@@ -51,11 +51,13 @@ REVERSE             = 1
 LEFT                = 2
 RIGHT               = 3
 STOP                = 4
-REVLEFT             = 5
-REVRIGHT            = 6
+REVERSE_LEFT_BIAS   = 5
+REVERSE_RIGHT_BIAS  = 6
+FORWARD_LEFT_BIAS   = 7
+FORWARD_RIGHT_BIAS  = 8
 
-INWARDS             = 7
-OUTWARDS            = 8
+INWARDS             = 9
+OUTWARDS            = 10
 
 MOTOR_FAILURE       = NotImplementedError
 
@@ -89,7 +91,7 @@ class Movement(object):
     .accelerate()               generator for producing the acceleration speed increments
         initial         int     the initial speed the motor will start acceleration from
         speed           int     the final requested cruising speed
-    .deccelerate()            generator for producing the decceleration speed increments
+    .decelerate()               generator for producing the deceleration speed increments
         initial         int     the final requested cruising speed
         speed           int     the initial speed the motor will start acceleration from
     .movement_type()            provided by sub-classes and determins movement patterns
@@ -102,7 +104,7 @@ class Movement(object):
         direction       int     specifies which polarity configuration and modifiers are 
                                 used on the motor speed
         acceleration    bool    enable acceleration
-        decceleration   bool    enable decceleration
+        deceleration    bool    enable deceleration
     .register_movement()        inteface for sending movemeent command to driver/task 
                                 engine
         velocity        tuple   left motor and right motor power values
@@ -141,14 +143,14 @@ class Movement(object):
         for i in range(initial, speed, self.accel_interval):
             yield i
 
-    def deccelerate(self, initial, speed):
+    def decelerate(self, initial, speed):
         for i in range(speed, initial, self.accel_interval * -1):
             yield i
 
     def movement_type(self, direction, speed):
         return (0, 0)
 
-    def move(self, speed, initial=None, direction=None, acceleration=False, decceleration=False, gearing=1):
+    def move(self, speed, initial=None, direction=None, acceleration=False, deceleration=False, gearing=1):
         if direction == STOP:
             direction = self.last_direction
             self.duration = self.last_speed / self.accel_interval
@@ -156,10 +158,10 @@ class Movement(object):
             if initial == None:
                 initial = self.last_speed
             speed_up_generator = self.accelerate(initial, speed)
-        elif decceleration == True:
+        elif deceleration == True:
             if speed == None:
                 speed = self.last_speed
-            speed_down_generator = self.deccelerate(initial, speed)
+            speed_down_generator = self.decelerate(initial, speed)
         i = 0
         while i <= self.duration:
             start_time = time.time()
@@ -168,11 +170,11 @@ class Movement(object):
                     speed = next(speed_up_generator)
                 except StopIteration:
                     acceleration = False
-            elif decceleration == True:
+            elif deceleration == True:
                 try:
                     speed = next(speed_down_generator)
                 except StopIteration:
-                    decceleration = False
+                    deceleration = False
             velocity = self.movement_type(direction, speed, gearing)
             try:
                 self.register_movement(velocity)
@@ -190,30 +192,30 @@ class Movement(object):
         self.bot.motorRun(LEFT_MOTOR, velocity[0])
         self.bot.motorRun(RIGHT_MOTOR, velocity[1])
 
-    def forward(self, speed, acceleration=False, decceleration=False, initial=None):
-        self.move(speed, initial, FORWARD, acceleration, decceleration)
-        if acceleration or decceleration:
+    def forward(self, speed, acceleration=False, deceleration=False, initial=None):
+        self.move(speed, initial, FORWARD, acceleration, deceleration)
+        if acceleration or deceleration:
             self.graduated_stop()
         else:
             self.stop()
 
-    def reverse(self, speed, acceleration=False, decceleration=False, initial=None):
-        self.move(speed, initial, REVERSE, acceleration, decceleration)
-        if acceleration or decceleration:
+    def reverse(self, speed, acceleration=False, deceleration=False, initial=None):
+        self.move(speed, initial, REVERSE, acceleration, deceleration)
+        if acceleration or deceleration:
             self.graduated_stop()
         else:
             self.stop()
 
-    def turn_left(self, speed, acceleration=False, decceleration=False, initial=None):
-        self.move(speed, initial, LEFT, acceleration, decceleration)
-        if acceleration or decceleration:
+    def turn_left(self, speed, acceleration=False, deceleration=False, initial=None):
+        self.move(speed, initial, LEFT, acceleration, deceleration)
+        if acceleration or deceleration:
             self.graduated_stop()
         else:
             self.stop()
 
-    def turn_right(self, speed, acceleration=False, decceleration=False, initial=None):
-        self.move(speed, initial, RIGHT, acceleration, decceleration)
-        if acceleration == True or decceleration == True:
+    def turn_right(self, speed, acceleration=False, deceleration=False, initial=None):
+        self.move(speed, initial, RIGHT, acceleration, deceleration)
+        if acceleration == True or deceleration == True:
             self.graduated_stop()
         else:
             self.stop()
@@ -223,17 +225,16 @@ class Movement(object):
         initial         = args[1]
         direction       = args[2]
         acceleration    = args[3]
-        decceleration   = args[4]
+        deceleration   = args[4]
         gearing         = args[5]
-        self.duration   = 0
-        self.move(speed, initial, direction, acceleration, decceleration, gearing)
+        self.move(speed, initial, direction, acceleration, deceleration, gearing)
 
     def stop(self):
         self.duration = 0
         self.move(0)
 
     def graduated_stop(self):
-        self.move(None, direction=STOP, initial=0, decceleration=True)
+        self.move(None, direction=STOP, initial=0, deceleration=True)
         self.stop()
 
 class TrackedMovement(Movement):
@@ -300,13 +301,13 @@ class ContinuousTrackedMovement(Movement):
             return fraction * stepping
 
     def movement_type(self, direction, speed, gearing):
-        if direction == REVLEFT:
+        if direction == REVERSE_LEFT_BIAS:
             return self.polarity(speed * -1, int((speed * gearing)))
-        elif direction == REVRIGHT:
+        elif direction == REVERSE_RIGHT_BIAS:
             return self.polarity(int((speed * gearing)) * -1, speed)
-        elif direction == LEFT:
+        elif direction == FORWARD_LEFT_BIAS:
             return self.polarity(speed, int((speed * gearing)) * -1)
-        elif direction == RIGHT:
+        elif direction == FORWARD_RIGHT_BIAS:
             return self.polarity(int((speed * gearing)), speed * -1)
         else:
             return (0, 0)
@@ -335,7 +336,7 @@ if __name__ == '__main__':
     M.duration = 5
     M.reverse(
         speed=50, 
-        decceleration=True, 
+        deceleration=True, 
         initial=10
         )
     M.duration = 5
@@ -352,14 +353,20 @@ if __name__ == '__main__':
     while gearing < 1.0/2.0:
         gearing = M.graduated_turn(gearing, 2, INWARDS)
         M.update(
-            [20, 0, LEFT, False, False, gearing]
+            [20, 0, FORWARD_LEFT_BIAS, False, False, gearing]
             )
 
     gearing = 1.0/1.0
     while gearing > 1.0/32.0:
         gearing = M.graduated_turn(gearing, 2, OUTWARDS)
         M.update(
-            [20, 0, LEFT, False, False, gearing]
+            [20, 0, FORWARD_LEFT_BIAS, True, False, gearing]
             )
-    time.sleep(3)
+
+    gearing = 1.0/2.0
+    M.duration = 5
+    M.accel_interval = 4
+    M.update(
+        [20, 5, FORWARD_LEFT_BIAS, True, False, gearing]
+        )
     M.stop()
