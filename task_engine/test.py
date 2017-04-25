@@ -54,7 +54,7 @@ if __name__ == '__main__':
         TC.insert('task_get_count', [2, 3])
 
     # Send the package
-    TC.send(meta)
+    TC.send()
 
     # Optional results
     print(TC.last())
