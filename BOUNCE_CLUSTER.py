@@ -52,4 +52,7 @@ def restart_node(host):
 if __name__ == '__main__':
 	for host in gen_node_hosts(NODES):
 		print('HOST: {0}'.format(host))
-		restart_node(host)
+		try:
+			restart_node(host)
+		except Exception, e:
+			print(e)

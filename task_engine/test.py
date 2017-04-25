@@ -23,20 +23,7 @@
 
 # Imports
 #-------------------------------------------------------------------------------- <-80
-import os
-os.sys.path.append(
-    os.path.dirname(
-        os.path.dirname(
-
-            os.path.abspath(__file__)
-            )
-        )
-    )
-from common.datatypes import TaskFrame
-from common.datatypes import MetaFrame
-from common.datatypes import DataFrame
-from common.datatypes import prepare
-import time
+from client.client import TaskClient
 
 # Globals
 #-------------------------------------------------------------------------------- <-80
@@ -50,19 +37,21 @@ import time
 # Main
 #-------------------------------------------------------------------------------- <-80
 if __name__ == '__main__':
-    start = time.time()
-    # Pack is simply a time epoch which can be used to identify all frames in an envelope
-    pack = time.time()
-    T = TaskFrame(pack)
-    M = MetaFrame(pack)
-    M.digest()
-    #meta = prepare(M, kwargs)
-    M.message['pack'] = M.hash
-    M.message['id'] = 'CLIENT'
-    M.message['version'] = 0.1
-    M.message['type'] = 'REQ'
-    M.message['role'] = 'requestor'
-    print M.serialize()
-    print time.time() - start
+    # Instance the Task Client
+    TC = TaskClient()
 
-    print 100 / 10
+    # PACKAGE CREATION PROCESS
+    # ------------------------
+    # Generate a packing ID for a series off commands
+    TC.generate_packing_id()
+    # Create a meta frame for the package
+    meta = TC.build_meta_frame('test')
+
+    # Simple loop to express creating multiple task frames for each task in the package
+    for i in range(20):
+            # Build a task frame requesting the execution of task_get_count with the 
+            # arguments 2 and 3
+            TC.build_task_frame('task_get_count', [2, 3])
+
+    # Send the package
+    TC.send(meta)
