@@ -52,4 +52,7 @@ def ping_node(host):
 if __name__ == '__main__':
 	for host in gen_node_hosts(NODES):
 		print('HOST: {0}'.format(host))
-		ping_node(host)
+		try:
+			ping_node(host)
+		except Exception, e:
+			print('HOST connect failure')
