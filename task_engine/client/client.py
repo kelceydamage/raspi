@@ -76,7 +76,7 @@ class TaskClient(object):
         Meta.message['role'] = self.name
         self.meta = Meta
 
-    def task_queue(self, meta):
+    def task_queue(self):
         message_hash = self.digest(self.queue)
         self.meta.message['length'] = len(self.queue)
         self.meta.message['serial'] = message_hash
@@ -90,7 +90,7 @@ class TaskClient(object):
         self.generate_packing_id()
         self.build_meta_frame(name)
 
-    def insert(task, args):
+    def insert(self, task, args):
         self.build_task_frame(task, args)
 
     def send(self):
