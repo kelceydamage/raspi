@@ -201,20 +201,55 @@ NAME:           DataWorker
 DESCRIPTION:    A remote data subscriber. Child of Worker.
     """
 
-    def __init__(self, host, port, pid):
+    def __init__(self, host, port, pid, service):
         super(DataWorker, self).__init__(host, port)
         """
 NAME:           __init__
 DESCRIPTION:    Initialize worker.
         """
-        self._socket = self._context.socket(zmq.SUB)
+        self._socket = self._context.socket(zmq.PUB)
+        self.service = service
         self.type = 'DATA'
         self.pid = pid
-        self.meta['id'] = '{0}-{1}'.format(self.type, self.pid)
+        self.meta.message['role'] = 'publisher'
+        self.meta.message['id'] = '{0}-{1}'.format(self.type, self.pid)
+        self.meta.message['type'] = 'PUB'
         self.hash = self.data.hash
 
-    def run_task(self, task):
-        pass
+    def run_task(self):
+        """
+NAME:           run_task
+DESCRIPTION:    Return the result of executing the given task
+REQUIRES:       request message [JSON]
+                - task
+                - args
+                - kwargs
+        """
+        response = []
+        response.append('job-{0}: {1}'.format(
+            self.service,
+            #eval(self.functions[task])(*args, **kwargs))
+            'sample')
+        )
+        return response
+
+    def start(self):
+        """
+NAME:           start
+DESCRIPTION:    Start listening for tasks.
+        """
+        self.log('Publisher online', '')
+        while True:
+            print('sample')
+            response = self.run_task()
+            print(response)
+            meta = self.meta.serialize()
+            self.data.message['data'] = response
+            frame = self.data.serialize()
+            message = [meta, frame]
+            print(message)
+            self._socket.send_multipart(message)
+            time.sleep(0.05)
 
 # Functions
 #-------------------------------------------------------------------------------- <-80

@@ -97,7 +97,8 @@ DESCRIPTION:    Wrapper for starting worker class instances with ProcessHandler
         DataWorker(
             host=args[0], 
             port=args[1],
-            pid=pid
+            pid=pid,
+            service='test'
             ).start()
 
 def gen_services(host, port, mode):

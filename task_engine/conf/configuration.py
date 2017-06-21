@@ -29,7 +29,7 @@
 # Workers
 STARTING_PORT = 10000
 TASK_WORKERS = 1        # Worker processes per node (per physical server)
-DATA_WORKERS = 0
+DATA_WORKERS = 1
 RESPONSE_TIME = 0.005   # Controls the rate at which tasks are sent to the workers,
                         # and in doing so, the size of the queue. 
                         # Example: 
