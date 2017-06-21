@@ -26,10 +26,17 @@
 from __future__ import print_function
 import os
 import commands
+import argparse
 
 # Globals
 #-------------------------------------------------------------------------------- <-80
 NODES = 8
+
+# Parser
+#-------------------------------------------------------------------------------- <-80
+parser = argparse.ArgumentParser()
+parser.add_argument("-r", "--remote-server", action="store", dest='server')
+args = parser.parse_args()
 
 # Classes
 #-------------------------------------------------------------------------------- <-80
@@ -44,15 +51,24 @@ def gen_node_hosts(nodes):
 
 def copy_repo(host):
 	print('Copying repo')
-	output = commands.getoutput('scp -r * {0}:~/projects/research'.format(host))
+	output = commands.getoutput('rsync -avz * {0}:~/projects/research'.format(host))
 	print(output)
 
 # Main
 #-------------------------------------------------------------------------------- <-80
 if __name__ == '__main__':
-	for host in gen_node_hosts(NODES):
+	if args.server:
+		host = args.server
 		print('HOST: {0}'.format(host))
 		try:
 			copy_repo(host)
 		except Exception, e:
 			print(e)
+	else:
+		for host in gen_node_hosts(NODES):
+			print('HOST: {0}'.format(host))
+			try:
+				copy_repo(host)
+			except Exception, e:
+				print(e)
+
