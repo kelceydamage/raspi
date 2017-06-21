@@ -41,6 +41,17 @@ task nodes will talk to the drivers.
 # Imports
 #-------------------------------------------------------------------------------- <-80
 from __future__ import print_function
+import os
+os.sys.path.append(
+    os.path.dirname(
+        os.path.dirname(
+            os.path.dirname(
+                os.path.abspath(__file__)
+                )
+            )
+        )
+    )
+from task_engine.client.client import TaskClient
 import time
 
 # Globals
@@ -132,6 +143,7 @@ class Movement(object):
         self.switch = False
         self.duration = 0
         self.accel_interval = 1
+        self.client = TaskClient('control_movement')
 
     def polarity(self, left_motor, right_motor):
         if self.switch == True:
@@ -189,8 +201,7 @@ class Movement(object):
             time.sleep(RESPONSE_TIME - end_time)
 
     def register_movement(self, velocity):
-        self.bot.motorRun(LEFT_MOTOR, velocity[0])
-        self.bot.motorRun(RIGHT_MOTOR, velocity[1])
+        self.client.insert('call_motor', velocity)
 
     def forward(self, speed, acceleration=False, deceleration=False, initial=None):
         self.move(speed, initial, FORWARD, acceleration, deceleration)
@@ -225,7 +236,7 @@ class Movement(object):
         initial         = args[1]
         direction       = args[2]
         acceleration    = args[3]
-        deceleration   = args[4]
+        deceleration    = args[4]
         gearing         = args[5]
         self.move(speed, initial, direction, acceleration, deceleration, gearing)
 
