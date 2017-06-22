@@ -62,7 +62,7 @@ if __name__ == "__main__":
 	reads = [
 		[35, 47]
 		]
-	zone_count = 16
+	zone_count = 1
 	print(zone_filter(zone_count, reads))
 
 
