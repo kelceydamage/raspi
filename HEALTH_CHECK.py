@@ -44,7 +44,7 @@ def gen_node_hosts(nodes):
 
 def ping_node(host):
 	print('Pinging node')
-	output = commands.getoutput('sudo ping {0}'.format(host))
+	output = commands.getoutput('sudo ping -w 2 -W 1 {0}'.format(host))
 	print(output)
 
 # Main

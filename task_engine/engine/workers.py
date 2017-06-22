@@ -157,7 +157,7 @@ NAME:           __init__
 DESCRIPTION:    Initialize worker.
         """
         self._socket = self._context.socket(zmq.REP)
-        self._socket.connect('tcp://{}:{}'.format(dealer, dealer_port))
+        self._socket.connect('tcp://{0}:{1}'.format(dealer, dealer_port))
         self.functions = functions
         self.type = 'TASK'
         self.pid = pid
@@ -201,20 +201,61 @@ NAME:           DataWorker
 DESCRIPTION:    A remote data subscriber. Child of Worker.
     """
 
-    def __init__(self, host, port, pid):
+    def __init__(self, host, port, pid, service):
         super(DataWorker, self).__init__(host, port)
         """
 NAME:           __init__
 DESCRIPTION:    Initialize worker.
         """
-        self._socket = self._context.socket(zmq.SUB)
+        self._socket = self._context.socket(zmq.PUB)
+        self._socket.bind('tcp://{0}:{1}'.format(host, port))
+        self.service = service
         self.type = 'DATA'
         self.pid = pid
-        self.meta['id'] = '{0}-{1}'.format(self.type, self.pid)
+        self.meta.message['role'] = 'publisher'
+        self.meta.message['id'] = '{0}-{1}'.format(self.type, self.pid)
+        self.meta.message['type'] = 'PUB'
         self.hash = self.data.hash
 
-    def run_task(self, task):
-        pass
+    def run_task(self):
+        """
+NAME:           run_task
+DESCRIPTION:    Return the result of executing the given task
+REQUIRES:       request message [JSON]
+                - task
+                - args
+                - kwargs
+        """
+        response = []
+        response.append('job-{0}: {1}'.format(
+            self.service,
+            #eval(self.functions[task])(*args, **kwargs))
+            'sample')
+        )
+        return response
+
+    def start(self):
+        """
+NAME:           start
+DESCRIPTION:    Start listening for tasks.
+        """
+        self.log('Publisher online', '')
+        while True:
+            #response = self.run_task()
+            #meta = self.meta.serialize()
+            #self.data.message['data'] = response
+            #frame = self.data.serialize()
+            #message = [meta, frame]
+            message = 'hello world'
+            print(message)
+            topic = 'sample'
+            frame = '{0} {1}'.format(topic, message)
+            print(frame)
+            try:
+                self._socket.send_multipart([topic, message])
+            except Exception, e:
+                print(e)
+            time.sleep(0.05)
 
 # Functions
 #-------------------------------------------------------------------------------- <-80

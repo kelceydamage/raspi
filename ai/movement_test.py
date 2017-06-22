@@ -23,7 +23,7 @@
 
 # Imports
 #-------------------------------------------------------------------------------- <-80
-from client.client import TaskClient
+from controls.movement.movement import ContinuousTrackedMovement
 
 # Globals
 #-------------------------------------------------------------------------------- <-80
@@ -37,24 +37,17 @@ from client.client import TaskClient
 # Main
 #-------------------------------------------------------------------------------- <-80
 if __name__ == '__main__':
-    # Instance the Task Client
-    TC = TaskClient('control-1')
+	CTM.accel_interval = 5
+	gearing = 1.0/2.0
+    M.duration = 5
+    M.accel_interval = 4
 
-    # PACKAGE CREATION PROCESS
-    # ------------------------  
-    # Create a meta frame for the package
-    TC.setup_container('test')
+	CTM.setup_container('action-128939')
+    M.update(
+        [20, 5, FORWARD_LEFT_BIAS, True, False, gearing]
+        )
+    CTM.send()
 
-    # Simple loop to express creating multiple task frames for each task 
-    # in the package
-    for i in range(20):
-
-        # Build a task frame requesting the execution of task_get_count 
-        # with the arguments 2 and 3
-        TC.insert('task_get_count', [2, 3])
-
-    # Send the package
-    TC.send()
-
-    # Optional results
-    print(TC.last())
+    CTM.setup_container('action-128940')
+    M.stop()
+    CTM.send()

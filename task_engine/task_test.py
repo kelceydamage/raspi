@@ -23,52 +23,38 @@
 
 # Imports
 #-------------------------------------------------------------------------------- <-80
-from __future__ import print_function
-import os
-import commands
-import argparse
+from client.client import TaskClient
 
 # Globals
 #-------------------------------------------------------------------------------- <-80
-NODES = 8
-
-# Parser
-#-------------------------------------------------------------------------------- <-80
-parser = argparse.ArgumentParser()
-parser.add_argument("-r", "--remote-server", action="store", dest='server')
-args = parser.parse_args()
 
 # Classes
 #-------------------------------------------------------------------------------- <-80
 
 # Functions
 #-------------------------------------------------------------------------------- <-80
-def gen_node_hosts(nodes):
-	hosts = []
-	for i in range(nodes):
-		hosts.append('r{0}'.format(i))
-	return hosts
-
-def copy_repo(host):
-	print('Copying repo')
-	output = commands.getoutput('rsync -avz * {0}:~/projects/research'.format(host))
-	print(output)
 
 # Main
 #-------------------------------------------------------------------------------- <-80
 if __name__ == '__main__':
-	if args.server:
-		host = args.server
-		print('HOST: {0}'.format(host))
-		try:
-			copy_repo(host)
-		except Exception, e:
-			print(e)
-	else:
-		for host in gen_node_hosts(NODES):
-			print('HOST: {0}'.format(host))
-			try:
-				copy_repo(host)
-			except Exception, e:
-				print(e)
+    # Instance the Task Client
+    TC = TaskClient('control-1')
 
+    # PACKAGE CREATION PROCESS
+    # ------------------------  
+    # Create a meta frame for the package
+    TC.setup_container('test')
+
+    # Simple loop to express creating multiple task frames for each task 
+    # in the package
+    for i in range(20):
+
+        # Build a task frame requesting the execution of task_get_count 
+        # with the arguments 2 and 3
+        TC.insert('task_get_count', [2, 3])
+
+    # Send the package
+    TC.send()
+
+    # Optional results
+    print(TC.last())

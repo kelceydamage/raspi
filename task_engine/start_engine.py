@@ -42,6 +42,30 @@ import argparse
 # Globals
 #-------------------------------------------------------------------------------- <-80
 
+# Parser
+#-------------------------------------------------------------------------------- <-80
+parser = argparse.ArgumentParser(prog="Task Engine")
+group_1 = parser.add_argument_group('Mode Of Operation')
+group_1.add_argument(
+    'mode', 
+    nargs='?',
+    help='Available modes: ROUTER, TASK, DATA'
+    )
+group_2 = parser.add_argument_group('Parameters')
+group_2.add_argument(
+    '-a', 
+    "--address", 
+    dest="address", 
+    help="Specify listening ip address [ex: 0.0.0.0]"
+    )
+group_2.add_argument(
+    '-p', 
+    "--port", 
+    dest="port", 
+    help="Specify listening port [ex: 10001]"
+    )
+args = parser.parse_args()
+
 # Classes
 #-------------------------------------------------------------------------------- <-80
 
@@ -73,7 +97,8 @@ DESCRIPTION:    Wrapper for starting worker class instances with ProcessHandler
         DataWorker(
             host=args[0], 
             port=args[1],
-            pid=pid
+            pid=pid,
+            service='test'
             ).start()
 
 def gen_services(host, port, mode):
@@ -110,37 +135,12 @@ DESCRIPTION:    Populates the SERVICES list for ProcessHandler
 
     return SERVICES, functions
 
-def init():
-    """
-NAME:           init
-DESCRIPTION:    Start and initialize the argument parser
-    """
-    parser = argparse.ArgumentParser(prog="Task Engine")
-    group_1 = parser.add_argument_group('Mode Of Operation')
-    group_1.add_argument(
-        'mode', 
-        metavar='MODE', 
-        help='Available modes: ROUTER, TASK, DATA'
-        )
-    group_2 = parser.add_argument_group('Parameters')
-    group_2.add_argument(
-        '-a', 
-        "--address", 
-        dest="address", 
-        help="Specify listening ip address [ex: 0.0.0.0]"
-        )
-    group_2.add_argument(
-        '-p', 
-        "--port", 
-        dest="port", 
-        help="Specify listening port [ex: 10001]"
-        )
-    return parser.parse_args()
-
 # Main
 #-------------------------------------------------------------------------------- <-80
 if __name__ == '__main__':
-    args = init()
+    if not args.mode or not args.address:
+        parser.print_help()
+        exit(1)
     SERVICES, functions = gen_services(args.address, args.port, args.mode.lower())
     PH = ProcessHandler(SERVICES)
     print('[REGISTERED-TASKS]: \n[-] {0}'.format('\n[-] '.join(functions.keys())))
