@@ -123,4 +123,10 @@ def print_color(results):
 
 # Main
 #-------------------------------------------------------------------------------- <-80
-    
+if __name__ == '__main__':
+    colorSensor = ColorSensor()
+    colorSensor.configure(100, 64)
+    colorSensor.start()
+    results = colorSensor.read(rgb=True, closest=True)
+    colorSensor.stop()
+    print_color(results)

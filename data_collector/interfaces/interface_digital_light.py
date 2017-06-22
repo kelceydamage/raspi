@@ -134,4 +134,10 @@ def print_digital_light(results):
 
 # Main
 #-------------------------------------------------------------------------------- <-80
-    
+if __name__ == '__main__':
+    digitalLightSensor = DigitalLightSensor()
+    digitalLightSensor.configure(1, 3)
+    digitalLightSensor.start()
+    results = digitalLightSensor.read()
+    digitalLightSensor.stop()
+    print_digital_light(results)
