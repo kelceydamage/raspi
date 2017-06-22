@@ -157,7 +157,7 @@ NAME:           __init__
 DESCRIPTION:    Initialize worker.
         """
         self._socket = self._context.socket(zmq.REP)
-        self._socket.connect('tcp://{}:{}'.format(dealer, dealer_port))
+        self._socket.connect('tcp://{0}:{1}'.format(dealer, dealer_port))
         self.functions = functions
         self.type = 'TASK'
         self.pid = pid
@@ -208,6 +208,7 @@ NAME:           __init__
 DESCRIPTION:    Initialize worker.
         """
         self._socket = self._context.socket(zmq.PUB)
+        self._socket.bind('tcp://{0}:{1}'.format(host, port))
         self.service = service
         self.type = 'DATA'
         self.pid = pid
@@ -240,15 +241,20 @@ DESCRIPTION:    Start listening for tasks.
         """
         self.log('Publisher online', '')
         while True:
-            print('sample')
-            response = self.run_task()
-            print(response)
-            meta = self.meta.serialize()
-            self.data.message['data'] = response
-            frame = self.data.serialize()
-            message = [meta, frame]
+            #response = self.run_task()
+            #meta = self.meta.serialize()
+            #self.data.message['data'] = response
+            #frame = self.data.serialize()
+            #message = [meta, frame]
+            message = 'hello world'
             print(message)
-            self._socket.send_multipart(message)
+            topic = 'sample'
+            frame = '{0} {1}'.format(topic, message)
+            print(frame)
+            try:
+                self._socket.send_multipart([topic, message])
+            except Exception, e:
+                print(e)
             time.sleep(0.05)
 
 # Functions

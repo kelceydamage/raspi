@@ -104,6 +104,28 @@ class TaskClient(object):
     def flush(self):
         self.results_queue = []
 
+class DataClient(object):
+    """
+    NAME:
+    DESCRIPTION:
+    """
+    def __init__(self, name):
+        super(DataClient, self).__init__()
+        print('create context')
+        self.data_socket = zmq.Context().socket(zmq.SUB)
+        print('connect: 127.0.0.1, 10003')
+        self.data_socket.connect('tcp://{0}:{1}'.format('127.0.0.1', 10003))
+        self.data_socket.setsockopt(zmq.SUBSCRIBE, 'sample')
+        self.results_queue = []
+
+    def receive(self):
+        print('receive attempt')
+        topic, message = self.data_socket.recv_multipart()
+        print('split frame')
+        self.results_queue.append(message)
+        print('[CLIENT] recv: {0}'.format(self.results_queue[-1]))
+
+
 # Functions
 #-------------------------------------------------------------------------------- <-80
 
