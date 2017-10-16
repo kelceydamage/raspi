@@ -52,7 +52,8 @@ DESCRIPTION:    A class for spawning child services and collapsing them.
         """
 NAME:           spawn
 DESCRIPTION:    starts the spawner process and retrieves the process objects.
-REQUIRES:       services [list of functions]
+REQUIRES:       services [list of functions] in the format of [func, [arg, arg, arg, ...]] 
+                for each function
     """
         current_process().daemon = False
         processing_object = Processing()
@@ -127,7 +128,8 @@ DESCRIPTION:    Handles the safe exit and cleanup of spawning multiple processes
         """
 NAME:           start
 DESCRIPTION:    Starts the given services using ProcessSpawner and collects the PIDs
-REQUIRES:       services [list of functions]
+REQUIRES:       services [list of functions] in the format of [func, [arg, arg, arg, ...]] 
+                for each function
         """
         if standalone:
             print()
