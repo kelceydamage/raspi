@@ -41,6 +41,9 @@ from common.datatypes import TaskFrame
 from common.datatypes import MetaFrame
 from common.datatypes import DataFrame
 from common.datatypes import prepare
+from common.print_helpers import padding
+from common.print_helpers import Colours
+from common.print_helpers import printc
 import sys
 import os
 import zmq
@@ -50,7 +53,9 @@ import math
 
 # Globals
 #-------------------------------------------------------------------------------- <-80
-VERSION = 0.1
+VERSION                 = 0.1
+PAD                     = 0
+COLOURS                 = Colours()
 
 # Classes
 #-------------------------------------------------------------------------------- <-80
@@ -104,7 +109,7 @@ REQUIRES:       host [ip/hostname]
             proto
             ))
         self.poller.register(self.frontend, zmq.POLLIN)
-        print('[ROUTER-{0}(FRONTEND)] Listener online'.format(port))
+        printc('{0}Listener online'.format(padding('[ROUTER-{0}(FRONTEND)] '.format(port), PAD)), COLOURS.GREEN)
 
     def setup_backend(self, host, port, proto='tcp'):
         """
@@ -120,7 +125,7 @@ REQUIRES:       host [ip/hostname]
             proto
             ))
         self.poller.register(self.backend, zmq.POLLIN)
-        print('[ROUTER-{0}(BACKEND)] Listener online'.format(port))
+        printc('{0}Listener online'.format(padding('[ROUTER-{0}(BACKEND)] '.format(port), PAD)), COLOURS.GREEN)
 
     def chunk(self, message):
         """
@@ -209,7 +214,7 @@ DESCRIPTION:    Main routing component [loop]
 NAME:
 DESCRIPTION:
         """
-        print('[ROUTER-MASTER] Routing started')
+        printc('{0}Routing started'.format(padding('[ROUTER-MASTER] ', PAD)), COLOURS.GREEN)
         self.run_broker()
 
     def log(self, action, service, message):
