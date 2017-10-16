@@ -66,5 +66,16 @@ def printc(message, colour):
 	endc = '\033[m'
 	print('{0}{1}{2}'.format(colour, message, endc))
 
+def print_nested(message):
+	if type(message) is list:
+		for item in message:
+			print_nested(item)
+	elif type(message) is dict:
+		for item in message:
+			print(item)
+			print_nested(message[item])
+	else:
+		print(message)
+
 # Main
 #-------------------------------------------------------------------------------- <-80
