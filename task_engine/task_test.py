@@ -24,6 +24,8 @@
 # Imports
 #-------------------------------------------------------------------------------- <-80
 from client.client import TaskClient
+from common.print_helpers import print_nested
+import json
 
 # Globals
 #-------------------------------------------------------------------------------- <-80
@@ -47,14 +49,19 @@ if __name__ == '__main__':
 
     # Simple loop to express creating multiple task frames for each task 
     # in the package
-    for i in range(20):
+    for i in range(10):
 
         # Build a task frame requesting the execution of task_get_count 
         # with the arguments 2 and 3
         TC.insert('task_get_count', [2, 3])
+        TC.insert('task_get_cuda_test', [2, 3])
 
     # Send the package
     TC.send()
 
     # Optional results
-    print(TC.last())
+    last = TC.last()
+    print('CLIENT RESPONSE')
+    for item in last:
+        print_nested(item)
+
