@@ -98,8 +98,20 @@ class TaskClient(object):
         self.queue = []
         self.meta = None
 
+    def deserialize(self, frame):
+        try:
+            return [json.loads(x) for x in frame]
+        except Exception, e:
+            return frame
+
     def last(self):
-        return self.results_queue[-1]
+        return self.deserialize(self.results_queue[-1])
+
+    def get(self):
+        return_queue = []
+        for frame in self.results_queue:
+            return_queue.append(self.deserialize(frame))
+        return return_queue
 
     def flush(self):
         self.results_queue = []

@@ -40,6 +40,8 @@ from common.datatypes import TaskFrame
 from common.datatypes import MetaFrame
 from common.datatypes import DataFrame
 from common.datatypes import prepare
+from common.print_helpers import printc
+from common.print_helpers import Colours
 from tasks import *
 import time
 import json
@@ -48,7 +50,8 @@ import md5
 
 # Globals
 #-------------------------------------------------------------------------------- <-80
-VERSION = 0.1
+VERSION                 = 0.1
+COLOURS                 = Colours()
 
 # Classes
 #-------------------------------------------------------------------------------- <-80
@@ -80,12 +83,12 @@ REQUIRES:       host [ip/hostname]
 
     def log(self, action, message):
         if ENABLE_STDOUT == True:
-            print('[WORKER-{0}({1})] {3}: {2}'.format(
+            printc('[WORKER-{0}({1})] {3}: {2}'.format(
                 self.pid, 
                 self.type, 
                 message,
                 action
-                )) 
+                ), COLOURS.GREEN) 
 
     def message(self, response, meta):
         """
@@ -136,7 +139,7 @@ NAME:           recv_validation
 DESCRIPTION:    Validate incoming requests
         """
         val1 = False
-        meta = json.loads(message[0])
+        meta = self.deserialize(message[0])
         if meta['length'] == len(message[1:]):
             val1 = True
         if val1 == True:

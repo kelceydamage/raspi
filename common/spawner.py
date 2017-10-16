@@ -26,12 +26,15 @@ SUMMARY:        A class for spawning child services and collapsing them.
 from __future__ import print_function
 from processing import Processing
 from multiprocessing import current_process
+from print_helpers import printc
+from print_helpers import Colours
 import os
 import signal
 import sys
 
 # Globals
 #-------------------------------------------------------------------------------- <-80
+COLOURS                     = Colours()
 
 # Classes
 #-------------------------------------------------------------------------------- <-80
@@ -49,7 +52,8 @@ DESCRIPTION:    A class for spawning child services and collapsing them.
         """
 NAME:           spawn
 DESCRIPTION:    starts the spawner process and retrieves the process objects.
-REQUIRES:       services [list of functions]
+REQUIRES:       services [list of functions] in the format of [func, [arg, arg, arg, ...]] 
+                for each function
     """
         current_process().daemon = False
         processing_object = Processing()
@@ -120,13 +124,19 @@ DESCRIPTION:    Handles the safe exit and cleanup of spawning multiple processes
         self.services = services
         signal.signal(signal.SIGINT, self.ctrl_c)
 
-    def start(self):
+    def start(self, standalone=True):
         """
 NAME:           start
 DESCRIPTION:    Starts the given services using ProcessSpawner and collects the PIDs
-REQUIRES:       services [list of functions]
+REQUIRES:       services [list of functions] in the format of [func, [arg, arg, arg, ...]] 
+                for each function
         """
-        print('### Type [ctrl-c] to exit and shutdown workers ###')
+        if standalone:
+            print()
+            printc('### Type [ctrl-c] to exit and shutdown workers ###', COLOURS.PURPLE)
+        else:
+            print()
+            printc('### Starting cluster of {0} service type: {1} ###'.format(len(self.services), self.services[0][1][-1]), COLOURS.PURPLE)
         self.spawn(self.services)
 
     def ctrl_c(self, signal, frame):
@@ -134,7 +144,7 @@ REQUIRES:       services [list of functions]
 NAME:           ctrl_c
 DESCRIPTION:    Handler for trapped ctrl-c commands
         """
-        print('\nClosing application and stopping services...')
+        printc('\nClosing application and stopping services...', COLOURS.PURPLE)
         self.kill_proc(self.status)
         sys.exit(0)
 
