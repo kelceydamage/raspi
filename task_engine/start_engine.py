@@ -37,10 +37,15 @@ from engine.workers import TaskWorker, DataWorker
 from engine.routers import Router
 from conf.configuration import *
 from common.spawner import ProcessHandler
+from common.headers import LINE
+from common.print_helpers import printc
+from common.print_helpers import Colours
 import argparse
+import time
 
 # Globals
 #-------------------------------------------------------------------------------- <-80
+COLOURS                     = Colours()
 
 # Parser
 #-------------------------------------------------------------------------------- <-80
@@ -63,6 +68,14 @@ group_2.add_argument(
     "--port", 
     dest="port", 
     help="Specify listening port [ex: 10001]"
+    )
+group_3 = parser.add_argument_group('Extras')
+group_3.add_argument(
+    '-m', 
+    "--meta",
+    action="store_true",
+    default=False,
+    help="Print meta header"
     )
 args = parser.parse_args()
 
@@ -101,7 +114,7 @@ DESCRIPTION:    Wrapper for starting worker class instances with ProcessHandler
             service='test'
             ).start()
 
-def gen_services(host, port, mode):
+def gen_services(host, port, mode, functions):
     """
 NAME:           gen_services
 DESCRIPTION:    Populates the SERVICES list for ProcessHandler
@@ -111,7 +124,6 @@ DESCRIPTION:    Populates the SERVICES list for ProcessHandler
             SERVICES.append([start_worker, [host, port, functions, worker_type]])
         return SERVICES
 
-    functions = load_tasks('../tasks')
     SERVICES = []
     try:
         if mode == 'router':
@@ -135,14 +147,26 @@ DESCRIPTION:    Populates the SERVICES list for ProcessHandler
 
     return SERVICES, functions
 
+def print_meta(functions):
+    print(LINE)
+    print('REGISTERED-TASKS:')
+    print(LINE)
+    for key in functions.keys():
+        print(' {0}{1}__{2} {3}{4}{2}'.format(COLOURS.BCYAN, COLOURS.BLACK, COLOURS.ENDC, COLOURS.LIGHTBLUE, key))
+    print(LINE)
+
 # Main
 #-------------------------------------------------------------------------------- <-80
 if __name__ == '__main__':
+    functions = load_tasks('../tasks')
     if not args.mode or not args.address:
+        if args.meta:
+            print_meta(functions)
+            exit(0)
         parser.print_help()
         exit(1)
-    SERVICES, functions = gen_services(args.address, args.port, args.mode.lower())
+    if args.meta:
+        print_meta(functions)
+    SERVICES, functions = gen_services(args.address, args.port, args.mode.lower(), functions)
     PH = ProcessHandler(SERVICES)
-    print('[REGISTERED-TASKS]: \n[-] {0}'.format('\n[-] '.join(functions.keys())))
-    print('------------------')
-    PH.start()
+    PH.start(False)
