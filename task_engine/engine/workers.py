@@ -139,7 +139,7 @@ NAME:           recv_validation
 DESCRIPTION:    Validate incoming requests
         """
         val1 = False
-        meta = json.loads(message[0])
+        meta = self.deserialize(message[0])
         if meta['length'] == len(message[1:]):
             val1 = True
         if val1 == True:
