@@ -24,11 +24,13 @@
 # Imports
 #-------------------------------------------------------------------------------- <-80
 from client.client import TaskClient
-from common.print_helpers import print_nested
+from common.print_helpers import print_nested, print_package, printc, Colours
 import json
+import time
 
 # Globals
 #-------------------------------------------------------------------------------- <-80
+COLOURS = Colours()
 
 # Classes
 #-------------------------------------------------------------------------------- <-80
@@ -54,14 +56,22 @@ if __name__ == '__main__':
         # Build a task frame requesting the execution of task_get_count 
         # with the arguments 2 and 3
         TC.insert('task_get_count', [2, 3])
-        TC.insert('task_get_cuda_test', [2, 3])
+        TC.insert('task_double_cuda_matrix', [32, 32])
 
     # Send the package
+    start = time.time()
     TC.send()
 
     # Optional results
     last = TC.last()
-    print('CLIENT RESPONSE')
+    end = time.time() - start
+    print('\n\n')
+    print('---------------------------------------------------------------')
+    printc('CLIENT RESPONSE: {0}s'.format(end), COLOURS.BLUE)
+    print('---------------------------------------------------------------')
+    printc('RUN: {0}, params=[2, 3]'.format('task_get_count'), COLOURS.GREEN)
+    printc('RUN: {0}, matrix=[32 * 32]'.format('task_double_cuda_matrix'), COLOURS.GREEN)
+    print('---------------------------------------------------------------')
     for item in last:
-        print_nested(item)
+        print_package(item)
 

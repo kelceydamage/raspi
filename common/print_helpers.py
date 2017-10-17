@@ -23,6 +23,7 @@
 
 # Imports
 #-------------------------------------------------------------------------------- <-80
+import json
 
 # Globals
 #-------------------------------------------------------------------------------- <-80
@@ -66,16 +67,29 @@ def printc(message, colour):
 	endc = '\033[m'
 	print('{0}{1}{2}'.format(colour, message, endc))
 
+def print_package(message):
+	print('PACK: {0}, SIZE: {1}'.format(message['pack'], message['size']))
+	if 'data' in message.keys():
+		for item in message['data']:
+			if type(item.values()[0]) is list:
+				print('JOB-ID: {0}, CUDA Response Time: {1}'.format(item.keys()[0], item.values()[0][0][1]))
+			else:
+				print('JOB-ID: {0}, Return Values: {1}'.format(item.keys()[0], item.values()[0]))
+
 def print_nested(message):
-	if type(message) is list:
+	if type(message) is dict:
+		print('---------------------------------------------------------------')
 		for item in message:
-			print_nested(item)
-	elif type(message) is dict:
+			if type(message[item]) is list:
+				print_package(message[item])
+			else:
+				print('{0}: {1}'.format(item, message[item]))
+	elif type(message) is list:
 		for item in message:
-			print(item)
-			print_nested(message[item])
+			print_package(item)
 	else:
-		print(message)
+		print('{0}'.format(message))
+
 
 # Main
 #-------------------------------------------------------------------------------- <-80

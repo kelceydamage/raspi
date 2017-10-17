@@ -60,7 +60,7 @@ def gen_objects(numpy, WIDTH, DEPTH):
     a_doubled = numpy.empty_like(a)
     return a, a_doubled
 
-def task_get_cuda_test(*args, **kwargs):
+def task_double_cuda_matrix(*args, **kwargs):
     import pycuda.driver as cuda
     import pycuda.autoinit
     from pycuda.compiler import SourceModule
