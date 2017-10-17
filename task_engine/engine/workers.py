@@ -186,15 +186,13 @@ REQUIRES:       request message [JSON]
                 task = frame['task']
                 args = frame['args']
                 kwargs = frame['kwargs']
-                response.append('job-{0}: {1}'.format(
-                    frame['pack'],
-                    eval(self.functions[task])(*args, **kwargs))
-                )
+                response.append({
+                    'job-{0}'.format(frame['pack']): eval(self.functions[task])(*args, **kwargs)
+                    })
             except Exception, e:
-                response.append('job-{0}: {1}'.format(
-                    frame['pack'],
-                    'ERROR: {0}'.format(e))
-                )
+                response.append({
+                    'job-{0}'.format(frame['pack']): 'ERROR: {0}'.format(e)
+                })
             i += 1
         return response
 
