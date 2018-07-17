@@ -71,10 +71,11 @@ def print_package(message):
 	print('PACK: {0}, SIZE: {1}'.format(message['pack'], message['size']))
 	if 'data' in message.keys():
 		for item in message['data']:
-			if type(item.values()[0]) is list:
-				print('JOB-ID: {0}, CUDA Response Time: {1}'.format(item.keys()[0], item.values()[0][0][1]))
+			print(item)
+			if type(list(item.values())[0]) is list:
+				print('JOB-ID: {0}, CUDA Response Time: {1}'.format(list(item.keys())[0], list(item.values())[0][0][1]))
 			else:
-				print('JOB-ID: {0}, Return Values: {1}'.format(item.keys()[0], item.values()[0]))
+				print('JOB-ID: {0}, Return Values: {1}'.format(list(item.keys())[0], list(item.values())[0]))
 
 def print_nested(message):
 	if type(message) is dict:

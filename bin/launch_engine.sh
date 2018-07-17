@@ -27,4 +27,4 @@ export RASPI_HOME=/git/projects/cython/personal
 PYTHON="python3.6"
 $PYTHON $RASPI_HOME/raspi/task_engine/start_engine.py -m
 $PYTHON $RASPI_HOME/raspi/task_engine/start_engine.py ROUTER -a 0.0.0.0 &
-$PYTHON $RASPI_HOME/raspi/task_engine/start_engine.py TASK -a 0.0.0.0 -p 9100 &
+$PYTHON $RASPI_HOME/raspi/task_engine/start_engine.py TASK -a 0.0.0.0 -p 19100 &

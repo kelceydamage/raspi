@@ -28,7 +28,7 @@ from common.datatypes import prepare
 import time
 import zmq
 import json
-import md5
+import hashlib
 
 # Globals
 #-------------------------------------------------------------------------------- <-80
@@ -54,7 +54,10 @@ class TaskClient(object):
         self.pack = time.time()
 
     def digest(self, message):
-        return md5.md5(''.join(message)).hexdigest()
+        if isinstance(message, str):
+            return hashlib.md5(''.join(message).encode()).hexdigest()
+        elif isinstance(message, bytes):
+            return hashlib.md5(''.join(message)).hexdigest()
 
     def build_task_frame(self, task, args=[], kwargs={}):
         Task = TaskFrame(self.pack)
@@ -81,8 +84,13 @@ class TaskClient(object):
         self.meta.message['length'] = len(self.queue)
         self.meta.message['serial'] = message_hash
         envelope = [self.meta.serialize()] + self.queue
+        print("Client Sending...")
+        print(envelope)
         self.task_socket.send_multipart(envelope)
-        self.results_queue.append(self.task_socket.recv_multipart())
+        print("Client Receiving")
+        response = self.task_socket.recv_multipart()
+        print(response)
+        self.results_queue.append(response)
 
         print('[CLIENT] recv: {0}'.format(self.results_queue[-1]))
 
@@ -100,8 +108,8 @@ class TaskClient(object):
 
     def deserialize(self, frame):
         try:
-            return [json.loads(x) for x in frame]
-        except Exception, e:
+            return [json.loads(x.decode()) for x in frame]
+        except Exception as e:
             return frame
 
     def last(self):

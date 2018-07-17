@@ -23,10 +23,12 @@
 
 # Imports
 #-------------------------------------------------------------------------------- <-80
+import time
+t1 = time.time()
 from client.client import TaskClient
 from common.print_helpers import print_nested, print_package, printc, Colours
 import json
-import time
+
 
 # Globals
 #-------------------------------------------------------------------------------- <-80
@@ -41,6 +43,7 @@ COLOURS = Colours()
 # Main
 #-------------------------------------------------------------------------------- <-80
 if __name__ == '__main__':
+    t2 = time.time()
     # Instance the Task Client
     TC = TaskClient('control-1')
 
@@ -56,9 +59,9 @@ if __name__ == '__main__':
         # Build a task frame requesting the execution of task_get_count 
         # with the arguments 2 and 3
         TC.insert('task_get_count', [2, 3])
-        TC.insert('task_double_cuda_matrix', [32, 32])
+        #TC.insert('task_get_count', [32, 32])
 
-    # Send the package
+    # Send the packageßßßßß
     start = time.time()
     TC.send()
 
@@ -70,8 +73,13 @@ if __name__ == '__main__':
     printc('CLIENT RESPONSE: {0}s'.format(end), COLOURS.BLUE)
     print('---------------------------------------------------------------')
     printc('RUN: {0}, params=[2, 3]'.format('task_get_count'), COLOURS.GREEN)
-    printc('RUN: {0}, matrix=[32 * 32]'.format('task_double_cuda_matrix'), COLOURS.GREEN)
+    #printc('RUN: {0}, matrix=[32 * 32]'.format('task_double_cuda_matrix'), COLOURS.GREEN)
     print('---------------------------------------------------------------')
-    for item in last:
+    for item in last[1:]:
         print_package(item)
+    print('---------------------------------------------------------------')
+    printc('RUNTIME: {0}s'.format(time.time() - t2), COLOURS.BLUE)
+    print('---------------------------------------------------------------')
+    printc('RUNTIME + IMPORTS: {0}s'.format(time.time() - t1), COLOURS.BLUE)
+    print('---------------------------------------------------------------')
 

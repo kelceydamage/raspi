@@ -83,10 +83,10 @@ DESCRIPTION:    Routes messages to available workers.
         self.buffer = []
 
     def deserialize(self, frame):
-        return json.loads(frame)
+        return json.loads(frame.decode())
 
     def serialize(self, frame):
-        return json.dumps(frame)
+        return json.dumps(frame).encode()
 
     def register_peers(self, peers):
         """
@@ -190,6 +190,7 @@ DESCRIPTION:    Main routing component [loop]
             socks = dict(self.poller.poll())
             if socks.get(self.frontend) == zmq.POLLIN:
                 message = self.frontend.recv_multipart()
+                print("ROUTER: ", message)
                 if CHUNKING == True:
                     self.log(
                         'Chunking: {0}/{1}'.format(len(message[3:]), CHUNKING_SIZE), 

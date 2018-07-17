@@ -40,8 +40,8 @@ RESPONSE_TIME = 0.005   # Controls the rate at which tasks are sent to the worke
 
 # Router
 ROUTER = '127.0.0.1'
-ROUTER_FRONTEND = 9000
-ROUTER_BACKEND = 9001
+ROUTER_FRONTEND = 19000
+ROUTER_BACKEND = 19001
 CHUNKING = True         # Chunking determines if and how much the router breaks up 
                         # queues in order the better balance worker loads.
                         # Example:

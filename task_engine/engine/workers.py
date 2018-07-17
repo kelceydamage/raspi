@@ -34,8 +34,8 @@ os.sys.path.append(
             )
         )
     )
-from conf.configuration import ENABLE_STDOUT
-from conf.configuration import ENABLE_DEBUG
+from task_engine.conf.configuration import ENABLE_STDOUT
+from task_engine.conf.configuration import ENABLE_DEBUG
 from common.datatypes import TaskFrame
 from common.datatypes import MetaFrame
 from common.datatypes import DataFrame
@@ -78,7 +78,7 @@ REQUIRES:       host [ip/hostname]
         self.meta.message['version'] = self.version
 
     def deserialize(self, frame):
-        return json.loads(frame)
+        return json.loads(frame.decode())
 
     def log(self, action, message):
         if ENABLE_STDOUT == True:

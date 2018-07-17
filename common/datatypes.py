@@ -45,7 +45,7 @@ DESCRIPTION:
 NAME:           serialize
 DESCRIPTION:    Convert self.message into a json object
         """
-        return json.dumps(self.message)
+        return json.dumps(self.message).encode()
 
     def pack_frame(self, kwargs):
         """
@@ -56,7 +56,7 @@ DESCRIPTION:    Helper to setup a frame
             setattr(self, key, kwargs[key])
 
     def digest(self):
-        self.hash = haslib.md5(''.join(sorted(self.message))).hexdigest()
+        self.hash = hashlib.md5(''.join(sorted(self.message)).encode()).hexdigest()
 
 class MetaFrame(Frame):
     """
