@@ -46,7 +46,6 @@ from tasks import *
 import time
 import json
 import zmq
-import md5
 
 # Globals
 #-------------------------------------------------------------------------------- <-80
@@ -189,7 +188,7 @@ REQUIRES:       request message [JSON]
                 response.append({
                     'job-{0}'.format(frame['pack']): eval(self.functions[task])(*args, **kwargs)
                     })
-            except Exception, e:
+            except Exception as e:
                 response.append({
                     'job-{0}'.format(frame['pack']): 'ERROR: {0}'.format(e)
                 })
@@ -254,7 +253,7 @@ DESCRIPTION:    Start listening for tasks.
             print(frame)
             try:
                 self._socket.send_multipart([topic, message])
-            except Exception, e:
+            except Exception as e:
                 print(e)
             time.sleep(0.05)
 

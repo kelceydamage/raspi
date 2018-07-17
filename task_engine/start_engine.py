@@ -141,7 +141,7 @@ DESCRIPTION:    Populates the SERVICES list for ProcessHandler
                 raise
             else:
                 SERVICES = _loop(DATA_WORKERS, 2, port, host, functions)
-    except Exception, e:
+    except Exception as e:
         print('Invald options and arguments provided. Unable to start services')
         exit(1)
 
@@ -158,7 +158,7 @@ def print_meta(functions):
 # Main
 #-------------------------------------------------------------------------------- <-80
 if __name__ == '__main__':
-    functions = load_tasks('../tasks')
+    functions = load_tasks('/git/projects/cython/personal/raspi/tasks')
     if not args.mode or not args.address:
         if args.meta:
             print_meta(functions)

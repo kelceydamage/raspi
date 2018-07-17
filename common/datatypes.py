@@ -24,7 +24,7 @@ SUMMARY: Classes to represent various message frame datatypes
 # Imports
 #-------------------------------------------------------------------------------- <-80
 import json
-import md5
+import hashlib
 
 # Globals
 #-------------------------------------------------------------------------------- <-80
@@ -56,7 +56,7 @@ DESCRIPTION:    Helper to setup a frame
             setattr(self, key, kwargs[key])
 
     def digest(self):
-        self.hash = md5.md5(''.join(sorted(self.message))).hexdigest()
+        self.hash = haslib.md5(''.join(sorted(self.message))).hexdigest()
 
 class MetaFrame(Frame):
     """
@@ -93,7 +93,7 @@ REQUIRES:       self.id [formatted as '{ROLE}-{PID}'] Example: 'W-3223'
             self.message['version'] = self.version
             self.message['type'] = self.type
             self.message['pack'] = self.pack
-        except Exception, e:
+        except Exception as e:
             self.message['error'] = b'Missing key parameter'
 
 class DataFrame(Frame):
@@ -119,7 +119,7 @@ REQUIRES:       self.data [Data payload]
         try:
             self.message['data'] = self.data
             self.message['pack'] = self.paack
-        except Exception, e:
+        except Exception as e:
             self.message['error'] = b'Missing key parameter'
 
 class TaskFrame(Frame):
@@ -151,7 +151,7 @@ REQUIRES:       self.task [Name of task to run]
             self.message['args'] = self.args
             self.message['kwargs'] = self.kwargs
             self.message['pack'] = self.pack 
-        except Exception, e:
+        except Exception as e:
             self.message['error'] = b'Missing key parameter'
 
 # Functions

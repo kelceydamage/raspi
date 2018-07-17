@@ -37,6 +37,7 @@ from inspect import getmembers
 from inspect import isfunction
 import pkgutil
 import sys
+import importlib
 
 # Globals
 #-------------------------------------------------------------------------------- <-80
@@ -54,11 +55,14 @@ DESCRIPTION:    Auto loader and parser for task modules. This function is writte
     functions = {}
     member_list = []
     for importer, package_name, _ in pkgutil.iter_modules([dirname]):
-        full_package_name = '%s.%s' % (dirname, package_name)
-        if full_package_name not in sys.modules:
-            module = importer.find_module(package_name).load_module(full_package_name)
-            for member in [x for x in dir(module) if 'task_' in x]:
-                functions[member] = '{0}.{1}'.format(package_name, member)
+        full_package_name = 'tasks.%s' % (package_name)
+        if package_name not in sys.modules:
+            try:
+                module = importer.find_module(package_name).load_module()
+                for member in [x for x in dir(module) if 'task_' in x]:
+                    functions[member] = '{0}.{1}'.format(package_name, member)
+            except Exception as e:
+                print(e)
 
     return functions
 

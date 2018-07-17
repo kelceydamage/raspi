@@ -24,10 +24,10 @@ SUMMARY:        A class for spawning child services and collapsing them.
 # Imports
 #-------------------------------------------------------------------------------- <-80
 from __future__ import print_function
-from processing import Processing
+from .processing import Processing
 from multiprocessing import current_process
-from print_helpers import printc
-from print_helpers import Colours
+from .print_helpers import printc
+from .print_helpers import Colours
 import os
 import signal
 import sys
@@ -106,7 +106,7 @@ REQUIRES:       status [output of self.spawn]
         for process in status:
             try:
                 os.kill(int(process[1]), signal.SIGTERM)
-            except OSError, e:
+            except OSError as e:
                 print('Error: {0}'.format(e))
             else:
                 print('Sucessfully terminated process [{0}]: {1}'.format(

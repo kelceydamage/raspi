@@ -69,14 +69,14 @@ def task_double_cuda_matrix(*args, **kwargs):
     a, a_doubled = gen_objects(numpy, 32, 32)
     try:
         func  = compile_kernel(SourceModule)
-    except Exception, e:
+    except Exception as e:
         return str(e)
     results = []
     for i in xrange(4):
         start = time.time()
         try:
             a_doubled = main(cuda, func, a, a_doubled)
-        except Exception, e:
+        except Exception as e:
             return str(e)
         else:
             end = time.time() - start
