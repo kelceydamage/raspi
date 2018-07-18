@@ -71,7 +71,6 @@ def print_package(message):
 	print('PACK: {0}, SIZE: {1}'.format(message['pack'], message['size']))
 	if 'data' in message.keys():
 		for item in message['data']:
-			print(item)
 			if type(list(item.values())[0]) is list:
 				print('JOB-ID: {0}, CUDA Response Time: {1}'.format(list(item.keys())[0], list(item.values())[0][0][1]))
 			else:
