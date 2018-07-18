@@ -2,3 +2,5 @@
 *.c
 *.cpp
 *.h
+*.html
+*.so
