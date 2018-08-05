@@ -35,7 +35,7 @@ os.sys.path.append(
     )
 
 from common.custom_math import CustomMath
-
+from monitoring.drivers.haruspex import HaruspexDriver
 from functools import partial
 import random
 from threading import Thread
@@ -95,7 +95,7 @@ def blocking_task():
         doc.add_next_tick_callback(partial(update, x=x, y=y, z=z, l=l))
         end = time.time() - s
         if end <= 0.01:
-            time.sleep(0.01 - end)
+            time.sleep(0.1 - end)
         else:
             print('Error loop state too-long: {0}'.format(end))
 
