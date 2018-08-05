@@ -18,5 +18,14 @@ def test_acceleration():
     assert DRIVER.accelerate(0, 5, True) == [x for x in range(0, 5)][::-1]
     assert DRIVER.accelerate(0, 5, False) == [x for x in range(0, 5)]
 
+def test_move():
+    DRIVER.duration = 1
+    assert DRIVER.move(5, direction=0, gearing=1/2, test=True) == (2, 2)
+    assert DRIVER.move(5, direction=1, gearing=1/2, test=True) == (-2, -2)
+    assert DRIVER.move(5, direction=5, gearing=1/2, test=True) == (2, -5)
+    assert DRIVER.move(5, direction=6, gearing=1/2, test=True) == (5, -2)
+    assert DRIVER.move(5, direction=7, gearing=1/2, test=True) == (-2, 5)
+    assert DRIVER.move(5, direction=8, gearing=1/2, test=True) == (-5, 2)
+
 if __name__ == '__main__':
-    print(test_instantiate())
+    pass

@@ -29,11 +29,12 @@ cdef int RIGHT_MOTOR
 
 # Python wrapper if the class needs to be called from Python. Wraps C++ class, mainly used for unit tests.
 cdef class PyWrap_MotorDrive:
-    cdef public MotorDrive DRIVER
+    cdef MotorDrive DRIVER
 
     cpdef accelerate(PyWrap_MotorDrive self, int initial, int speed, bint positive)
     cpdef configure(PyWrap_MotorDrive self)
     cpdef polarity(PyWrap_MotorDrive self, int l, int r)
+    cpdef move(PyWrap_MotorDrive self, int speed, int initial=?, int direction=?, bint acceleration=?, bint positive=?, double gearing=?, bool test=?)
 
 cdef class MotorDrive:
 
@@ -45,18 +46,14 @@ cdef class MotorDrive:
     cdef Timer timer
     cdef cpplist[int] acelerator
 
-    cdef void configure(MotorDrive self)
-    cdef pair[int, int] movement_type(MotorDrive self, int direction, int speed, float gearing)
-    cdef void update(self, vector[int] args)
-    cdef cpplist[int] _gen_acelerator(MotorDrive self, int initial, int speed, bint positive)
-    cdef pair[int, int] polarity(self, int left_motor, int right_motor)
-    cdef void move(MotorDrive self, int speed, int initial=?, int direction=?, bint acceleration=?, bint positive=?, double gearing=?)
-    
-
-cdef class ContinuousTrackedMovement(MotorDrive):
-
-    cdef double graduated_turn(ContinuousTrackedMovement self, double fraction, int stepping, int direction)
-    cdef pair[int, int] movement_type(ContinuousTrackedMovement self, int direction, int speed, float gearing)
+    cdef void _configure(MotorDrive self)
+    cdef pair[int, int] _movement_type(MotorDrive self, int direction, int speed, float gearing)
+    cdef void _update(self, vector[int] args)
+    cdef cpplist[int] _gen_accelerator(MotorDrive self, int initial, int speed, bint positive)
+    cdef pair[int, int] _polarity(self, int left_motor, int right_motor)
+    cdef pair[int, int] _move(MotorDrive self, int speed, int initial=?, int direction=?, bint acceleration=?, bint positive=?, double gearing=?, bool test=?)
+    cdef double _graduated_turn(MotorDrive self, double fraction, int stepping, int direction)
+    cdef pair[int, int] _movement_type(MotorDrive self, int direction, int speed, float gearing)
 
 cdef class Timer:
 
