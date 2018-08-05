@@ -1,15 +1,38 @@
 #!python
 #cython: language_level=3, cdivision=True, boundscheck=False, wraparound=False
 
+# License
+#---------------------------------------------------------------------------------------------------- <-100
+# Author: Kelcey Damage
+# Python: 3.5+
+
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+
+#    http://www.apache.org/licenses/LICENSE-2.0
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Doc
+#---------------------------------------------------------------------------------------------------- <-100
+
+# Imports
+#---------------------------------------------------------------------------------------------------- <-100
 from libcpp.list cimport list as cpplist
 from libcpp cimport bool
 from libcpp.vector cimport vector
 from libcpp.utility cimport pair
 from libc.stdio cimport printf
-#from time import sleep
 cimport cython
 cimport posix.time as p_time
 
+# Constants
+#---------------------------------------------------------------------------------------------------- <-100
 # Numerical identifiers for basic movement patterns
 FORWARD             = 0
 REVERSE             = 1
@@ -33,8 +56,8 @@ RESPONSE_TIME       = 0.5 # 500ms
 LEFT_MOTOR          = 1
 RIGHT_MOTOR         = 2
 
-# Wrappers For python testing
-
+# Classes
+#---------------------------------------------------------------------------------------------------- <-100
 # Python wrapper if the class needs to be called from Python. Wraps C++ class, mainly used for unit tests.
 cdef class PyWrap_MotorDrive:
 
@@ -214,3 +237,13 @@ cdef class Timer:
     cdef void end(Timer self):
         p_time.gettimeofday(&self._p_end, NULL)
         self._subtract()
+
+# Functions
+#---------------------------------------------------------------------------------------------------- <-100
+cpdef PyWrap_MotorDrive main():
+    return PyWrap_MotorDrive()
+
+# Main
+#---------------------------------------------------------------------------------------------------- <-100
+if __name__ == "__main__": 
+    pym = main()
