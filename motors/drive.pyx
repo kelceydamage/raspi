@@ -1,5 +1,8 @@
+#!python
+#cython: language_level=3, cdivision=True, boundscheck=False, wraparound=False
+
+from libcpp.list cimport list as cpplist
 from libcpp cimport bool
-from libcpp.queue cimport queue
 from libcpp.vector cimport vector
 from libcpp.utility cimport pair
 from libc.stdio cimport printf
@@ -30,44 +33,42 @@ RESPONSE_TIME       = 0.5 # 500ms
 LEFT_MOTOR          = 1
 RIGHT_MOTOR         = 2
 
+# Wrappers For python testing
+
+# Python wrapper if the class needs to be called from Python. Wraps C++ class, mainly used for unit tests.
+cdef class PyWrap_MotorDrive:
+
+    def __cinit__(PyWrap_MotorDrive self):
+        self.DRIVER = MotorDrive()
+
+    def __setattr__(PyWrap_MotorDrive self, str a, object v):
+        setattr(self.DRIVER, a, v)
+
+    def __getattr__(PyWrap_MotorDrive self, str a):
+        return getattr(self.DRIVER, a)
+
+    cpdef configure(PyWrap_MotorDrive self):
+        self.DRIVER.configure()
+
+    cpdef polarity(PyWrap_MotorDrive self, int l, int r):
+        return self.DRIVER.polarity(l, r)
+
+    cpdef accelerate(PyWrap_MotorDrive self, int initial, int speed, bint positive):
+        return self.DRIVER._gen_acelerator(initial, speed, positive)
+
 cdef class MotorDrive:
-    def __cinit__(MotorDrive self):
+
+    cdef void configure(MotorDrive self):
         #self.bot = None
-        self.switch = False
+        self.polarity_bool = False
         self.duration = 0
         self.accel_interval = 1
         #self.timer = Timer()
         #self.client = TaskClient('control_movement')
 
-    cdef int accelerate(MotorDrive self, int initial, int speed, bool positive):
-        cdef int i
-        cdef queue[int] v
-
-    cdef queue[int] _gen_acelerator(MotorDrive self, int initial, int speed, bool positive):
-        cdef int i
-        cdef int stepping
-        cdef int start
-        cdef int end
-        cdef queue[int] v
-       
-        if positive:
-            stepping = self.accel_interval
-            start = initial
-            end = speed
-        else:
-            stepping = self.accel_interval * -1
-            start = speed
-            end = initial
-        i = start
-        while i != end:
-           v.push(i)
-           i += stepping
-
-        return v
-
     cdef pair[int, int] polarity(MotorDrive self, int left_motor, int right_motor):
         cdef pair[int, int] p
-        if self.switch == True:
+        if self.polarity_bool == True:
             p.first = left_motor
             p.second = right_motor
         else:
@@ -75,8 +76,30 @@ cdef class MotorDrive:
             p.second = left_motor
         return p
 
+    cdef cpplist[int] _gen_acelerator(MotorDrive self, int initial, int speed, bint positive):
+        cdef int i
+        cdef int stepping
+        cdef int start
+        cdef int end
+        cdef cpplist[int] v
+       
+        if positive:
+            stepping = self.accel_interval
+            start = initial
+            end = speed
+        else:
+            stepping = self.accel_interval * -1
+            start = speed - 1
+            end = initial - 1
+        i = start
+        while i != end:
+           v.push_front(i)
+           i += stepping
+
+        return v
+
     @cython.cdivision(True) 
-    cdef void move(MotorDrive self, int speed, int initial=0, int direction=0, bool acceleration=False, bool positive=True, double gearing=1.0):
+    cdef void move(MotorDrive self, int speed, int initial=0, int direction=0, bint acceleration=False, bint positive=True, double gearing=1.0):
         cdef int i
         cdef int err
         cdef double rt
@@ -94,8 +117,8 @@ cdef class MotorDrive:
             self.timer.start()
             if acceleration == True:
                 if not self.acelerator.empty():
-                    speed = self.acelerator.front()
-                    self.acelerator.pop()
+                    speed = self.acelerator.back()
+                    self.acelerator.pop_back()
                 else:
                     acceleration = False
             

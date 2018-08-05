@@ -1,5 +1,6 @@
+
+from libcpp.list cimport list as cpplist
 from libcpp cimport bool
-from libcpp.queue cimport queue
 from libcpp.vector cimport vector
 from libcpp.utility cimport pair
 cimport cython
@@ -19,36 +20,46 @@ cdef int INWARDS
 cdef int OUTWARDS
 
 #cdef object MOTOR_FAILURE
-cdef bool TRACKED
+cdef bint TRACKED
 cdef double RESPONSE_TIME
 
 # Motor ports. Default settings are for MegaPi
 cdef int LEFT_MOTOR
 cdef int RIGHT_MOTOR
 
+# Python wrapper if the class needs to be called from Python. Wraps C++ class, mainly used for unit tests.
+cdef class PyWrap_MotorDrive:
+    cdef public MotorDrive DRIVER
+
+    cpdef accelerate(PyWrap_MotorDrive self, int initial, int speed, bint positive)
+    cpdef configure(PyWrap_MotorDrive self)
+    cpdef polarity(PyWrap_MotorDrive self, int l, int r)
+
 cdef class MotorDrive:
+
     cdef int last_direction
     cdef int last_speed
-    cdef readonly cython.int accel_interval
-    cdef int duration
-    cdef bool switch
+    cdef public cython.int accel_interval
+    cdef public int duration
+    cdef public bool polarity_bool
     cdef Timer timer
-    cdef queue[int] acelerator
+    cdef cpplist[int] acelerator
 
+    cdef void configure(MotorDrive self)
     cdef pair[int, int] movement_type(MotorDrive self, int direction, int speed, float gearing)
-
     cdef void update(self, vector[int] args)
-    cdef queue[int] _gen_acelerator(MotorDrive self, int initial, int speed, bool positive)
-    cdef int accelerate(MotorDrive self, int initial, int speed, bool positive)
+    cdef cpplist[int] _gen_acelerator(MotorDrive self, int initial, int speed, bint positive)
     cdef pair[int, int] polarity(self, int left_motor, int right_motor)
-    cdef void move(MotorDrive self, int speed, int initial=?, int direction=?, bool acceleration=?, bool positive=?, double gearing=?)
+    cdef void move(MotorDrive self, int speed, int initial=?, int direction=?, bint acceleration=?, bint positive=?, double gearing=?)
     
 
 cdef class ContinuousTrackedMovement(MotorDrive):
+
     cdef double graduated_turn(ContinuousTrackedMovement self, double fraction, int stepping, int direction)
     cdef pair[int, int] movement_type(ContinuousTrackedMovement self, int direction, int speed, float gearing)
 
 cdef class Timer:
+
     cdef public double _start
     cdef public double _end
     cdef public double _result
