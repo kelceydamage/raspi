@@ -18,15 +18,19 @@ extentions = [
     ]
 
 if USE_CYTHON:
-    from Cython.Build import cythonize
-    import Cython
-    Cython.Compiler.Options.annotate = True
-    Cython.Compiler.Options.warning_errors = True
-    Cython.Compiler.Options.convert_range = True
-    Cython.Compiler.Options.cache_builtins = True
-    Cython.Compiler.Options.gcc_branch_hints = True
-    Cython.Compiler.Options.embed = False
-    extentions = cythonize(extentions)
+    try:
+        from Cython.Build import cythonize
+        import Cython
+    except ImportError as e:
+        print('ERROR: Cython not found. Please install (pip install cython) and try again')
+    else:
+        Cython.Compiler.Options.annotate = True
+        Cython.Compiler.Options.warning_errors = True
+        Cython.Compiler.Options.convert_range = True
+        Cython.Compiler.Options.cache_builtins = True
+        Cython.Compiler.Options.gcc_branch_hints = True
+        Cython.Compiler.Options.embed = False
+        extentions = cythonize(extentions)
 
 setup(
     ext_modules = extentions
