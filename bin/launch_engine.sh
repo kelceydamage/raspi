@@ -23,8 +23,9 @@ echo "         R A S P I      (c) Robot OS                         -K. Damage"
 
 local_home=`pwd`
 export PATH=$local_home:$PATH
-export RASPI_HOME=/git/projects/cython/personal
-PYTHON="python3.6"
+#export RASPI_HOME=/git/projects/cython/personal
+export RASPI_HOME=/opt/git
+PYTHON="python3"
 $PYTHON $RASPI_HOME/raspi/task_engine/start_engine.py -m
 $PYTHON $RASPI_HOME/raspi/task_engine/start_engine.py ROUTER -a 0.0.0.0 &
 $PYTHON $RASPI_HOME/raspi/task_engine/start_engine.py TASK -a 0.0.0.0 -p 19100 &
