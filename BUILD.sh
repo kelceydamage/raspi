@@ -7,7 +7,7 @@ fi
 
 # precompile c++ modules
 echo -e "PRE_COMPILING PXD\n"
-cython --cplus $PROJECT/drive.pyx --force
+cython -a --cplus $PROJECT/drive.pyx --force
 
 # general compile of project modules
 echo -e "RUNNING SETUP.PY\n"

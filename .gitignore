@@ -2,7 +2,7 @@
 *.c
 *.cpp
 *.h
-*.html
-*.so
-var/security/*
+var/security
+./build/*
 build/*
+build/
