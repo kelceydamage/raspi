@@ -19,9 +19,9 @@ os.sys.path.append(
             )
         )
     )
-from conf.configuration import RESPONSE_TIME
-from conf.configuration import ROUTER
-from conf.configuration import ROUTER_FRONTEND
+from task_engine.conf.configuration import RESPONSE_TIME
+from task_engine.conf.configuration import ROUTER
+from task_engine.conf.configuration import ROUTER_FRONTEND
 from common.datatypes import TaskFrame
 from common.datatypes import MetaFrame
 from common.datatypes import prepare

@@ -190,7 +190,7 @@ class Movement(object):
             velocity = self.movement_type(direction, speed, gearing)
             try:
                 self.register_movement(velocity)
-            except Exception, e:
+            except Exception as e:
                 print(MOTOR_FAILURE)
                 print(velocity)
             self.last_speed = speed

@@ -37,7 +37,7 @@ GPIO_SIG = 4
 # Obsolete example
 def getAndPrint():
 
-    print "SeeedStudio Grove Ultrasonic get data and print"
+    print("SeeedStudio Grove Ultrasonic get data and print")
 
     # test 100 times
     for i in range(100):
@@ -79,7 +79,7 @@ class GroveDigitalUltrasonicSensor(object):
 
     def measurementPulse(self, start, stop):
 
-        print "Ultrasonic Measurement"
+        print("Ultrasonic Measurement")
 
         # Calculate pulse length
         elapsed = stop-start
