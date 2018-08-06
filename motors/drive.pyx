@@ -1,6 +1,9 @@
 #!python
 #cython: language_level=3, cdivision=True, boundscheck=False, wraparound=False
 
+# cython: linetrace=True
+# distutils: define_macros=CYTHON_TRACE_NOGIL=1
+
 # License
 #---------------------------------------------------------------------------------------------------- <-100
 # Author: Kelcey Damage
