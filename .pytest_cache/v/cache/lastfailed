@@ -1,0 +1,17 @@
+{
+  "CLUSTER_TOOL.py": true,
+  "ai/movement_test.py": true,
+  "data_collector/research/test_read_colors.py": true,
+  "data_collector/research/test_read_digital_light.py": true,
+  "data_collector/research/test_read_ultrasonic.py": true,
+  "monitoring/launcher.py": true,
+  "monitoring/server/main.py": true,
+  "motors/movement.py": true,
+  "motors/test_drve.py": true,
+  "sensors/grove/i2c/color_sensor.py": true,
+  "sensors/grove/i2c/digital_light_sensor.py": true,
+  "sensors/grove/raw/ultrasonic.py": true,
+  "task_engine/data_test.py": true,
+  "task_engine/start_engine.py": true,
+  "task_engine/task_test.py": true
+}

@@ -120,7 +120,7 @@ def function_wrapper(option, host, command_if_true=None, command_if_false=None, 
 	print('Executing command: {0}'.format(command))
 	try:
 		output = commands.getoutput(command)
-	except Exception, e:
+	except Exception as e:
 		output = str(e)
 	print(output)
 

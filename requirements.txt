@@ -1,3 +1,4 @@
 pyzmq
 cython
 python-coveralls
+bokeh

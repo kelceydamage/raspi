@@ -27,9 +27,9 @@ Sample collector for reading instrument data
 #-------------------------------------------------------------------------------- <-80
 from __future__ import print_function
 import time
-import smbus
+import smbus2 as smbus
 import RPi.GPIO as GPIO
-from smbus import SMBus
+from smbus2 import SMBus
 
 # Globals
 #-------------------------------------------------------------------------------- <-80

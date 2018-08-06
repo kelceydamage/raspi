@@ -6,3 +6,7 @@ Scripts can be modified, but the default location to install raspi is:
 ```
 
 There is an expectation to be using the `raspi` virtual environment. Examples will take this into account.
+
+```bash
+pip install pytest-cov
+```
