@@ -7,3 +7,5 @@ var/security
 ./build/*
 build/*
 build/
+*,cover
+htmlcov
