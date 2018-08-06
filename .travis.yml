@@ -5,10 +5,7 @@ python:
 install:
   - pip install -r requirements.txt
   - bash BUILD.sh motors
-before_script:
-  - py.test --cov=raspi 
 script:
-  - py.test --doctest-modules --pep8 coveralls -v --cov coveralls --cov-report term-missing
-  - pytest motors
+  - py.test --doctest-modules -v --cov=raspi --cov-report=term-missing
 after_success:
   - coveralls

@@ -17,3 +17,4 @@ echo -e "DONE\n"
 # distribute and cleanup
 rm -rf $PROJECT/*.cpp
 rm -rf $PROJECT/*.c
+rm -rf */*/*/*/*.pyc

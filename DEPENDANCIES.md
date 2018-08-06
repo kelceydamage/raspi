@@ -3,6 +3,12 @@
 ## Dependancies
 * ZMQ
 * Cython
+* SMBus2
+* RPi.GPIO
+
+## Optional
+* Bokeh
+** Used for monitoring features
 
 ### Development Environment
 ```bash
@@ -25,4 +31,21 @@ pip install pyzmq
 ### Installing Cython
 ```bash
 pip install cython
+```
+
+### Installing SMBus2
+```bash
+pip install smbus2
+```
+
+### Installing RPi.GPIO
+```bash
+pip install RPi.GPIO
+```
+
+### Apt package alternates
+```bash
+sudo apt-get install i2c-tools
+sudo apt-get install python-smbus
+sudo apt-get install python-rpi.gpio
 ```
