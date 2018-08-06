@@ -3,7 +3,12 @@ python:
   - 3.5
   - 3.6
 install:
-  - pip install -r requirements.txt
+  - pip install -r requirements.txt --use-mirrors
   - bash BUILD.sh motors
+before_script:
+  - py.test --cov=raspi 
 script:
+  - py.test --doctest-modules --pep8 coveralls -v --cov coveralls --cov-report term-missing
   - pytest motors
+after_success:
+  - coveralls
