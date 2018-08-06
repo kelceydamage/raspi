@@ -9,3 +9,4 @@ build/*
 build/
 *,cover
 htmlcov
+.coverage

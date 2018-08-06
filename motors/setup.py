@@ -26,6 +26,9 @@ import platform
 # Constants
 #---------------------------------------------------------------------------------------------------- <-100
 USE_CYTHON = True
+CYTHON_TRACE = True
+LANGUAGE = 'c++'
+CPP_VERSION = '11'
 
 # Main
 #---------------------------------------------------------------------------------------------------- <-100
@@ -35,8 +38,9 @@ extentions = [
     Extension(
         "motors/drive", 
         sources=["motors/drive{0}".format(ext)],
-        extra_compile_args=['-std=c++11'],
-        language="c++"
+        extra_compile_args=['-std={0}{1}'.format(LANGUAGE, CPP_VERSION)],
+        language=LANGUAGE,
+        compiler_directives={'linetrace': CYTHON_TRACE}
         )
     ]
 
