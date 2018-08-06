@@ -9,3 +9,4 @@ script:
   - py.test --doctest-modules -v --cov=raspi --cov-report=term-missing
 after_success:
   - coveralls
+  - codecov

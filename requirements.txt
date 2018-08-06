@@ -5,3 +5,4 @@ smbus2
 pytest-cov
 python-coveralls
 bokeh
+codecov
