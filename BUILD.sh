@@ -13,12 +13,8 @@ cython --annotate-coverage coverage.xml $PROJECT/drive.pyx --force --embed --cpl
 echo -e "RUNNING SETUP.PY\n"
 python3 $PROJECT/setup.py build_ext --inplace --force
 
-# postcompile c++ modules
-echo -e "POST_COMPILING PXD for annotations and coverage\n"
-cython --annotate-coverage coverage.xml $PROJECT/drive.pyx --force --embed --cplus
-
 echo -e "DONE\n"
 # distribute and cleanup
-rm -rf $PROJECT/*.cpp
-rm -rf $PROJECT/*.c
-rm -rf */*/*/*/*.pyc
+#rm -rf $PROJECT/*.cpp
+#rm -rf $PROJECT/*.c
+#rm -rf */*/*/*/*.pyc
