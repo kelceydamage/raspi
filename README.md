@@ -1,6 +1,4 @@
-[![Build Status](https://travis-ci.com/kelceydamage/raspi.svg?branch=master)](https://travis-ci.com/kelceydamage/raspi) [![Coverage Status](https://coveralls.io/repos/github/kelceydamage/raspi/badge.svg?branch=master)](https://coveralls.io/github/kelceydamage/raspi?branch=master)
-
-
+[![Build Status](https://travis-ci.com/kelceydamage/raspi.svg?branch=master)](https://travis-ci.com/kelceydamage/raspi) [![Coverage Status](https://coveralls.io/repos/github/kelceydamage/raspi/badge.svg?branch=master)](https://coveralls.io/github/kelceydamage/raspi?branch=master) [![codecov](https://codecov.io/gh/kelceydamage/raspi/branch/master/graph/badge.svg)](https://codecov.io/gh/kelceydamage/raspi) [![Code Health](https://landscape.io/github/kelceydamage/raspi/master/landscape.svg?style=flat)](https://landscape.io/github/kelceydamage/raspi/master)
 
 # Raspi 
 Raspi is a library of light-weight services for programming Raspberry Pi's.
