@@ -1,5 +1,5 @@
 #!python
-#cython: linetrace=True, language_level=3, cdivision=True, boundscheck=False, wraparound=False
+#cython: language_level=3, cdivision=True, boundscheck=False, wraparound=False
 #distutils: define_macros=CYTHON_TRACE_NOGIL=1
 
 # License

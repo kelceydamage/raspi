@@ -26,7 +26,7 @@ import platform
 # Constants
 #---------------------------------------------------------------------------------------------------- <-100
 USE_CYTHON = True
-CYTHON_TRACE = True
+CYTHON_TRACE = False
 LANGUAGE = 'c++'
 CPP_VERSION = '11'
 
