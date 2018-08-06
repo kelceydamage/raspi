@@ -9,4 +9,5 @@ There is an expectation to be using the `raspi` virtual environment. Examples wi
 
 ```bash
 pip install pytest-cov
+pip install python-coveralls
 ```

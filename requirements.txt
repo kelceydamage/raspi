@@ -1,4 +1,7 @@
 pyzmq
 cython
+RPi.GPIO
+smbus2
+pytest-cov
 python-coveralls
 bokeh
