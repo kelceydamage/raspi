@@ -1,9 +1,0 @@
-{
-  "ai/movement_test.py": true,
-  "data_collector/research/test_read_colors.py": true,
-  "data_collector/research/test_read_digital_light.py": true,
-  "data_collector/research/test_read_ultrasonic.py": true,
-  "motors/test_drve.py": true,
-  "task_engine/data_test.py": true,
-  "task_engine/task_test.py": true
-}

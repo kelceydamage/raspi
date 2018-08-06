@@ -1,6 +1,0 @@
-[
-  "motors/test_drive.py::test_configure",
-  "motors/test_drive.py::test_polarity",
-  "motors/test_drive.py::test_acceleration",
-  "motors/test_drive.py::test_move"
-]
