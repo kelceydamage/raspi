@@ -22,14 +22,14 @@ The goal of the `Raspi` platform is to create an extensable, scalable, hardware 
 
 ## Contents
 
-### Currently contains:
+### Currently contains
 
 ```bash
 task_engine:        Based on ZMQ, the primary orchestrator for handling both REQ => REP for
                     task automation, and PUB => SUB for sensor data retrieval.
 ```
 
-### In progress:
+### In progress
 
 ```bash
 data_collector:     Micro daemon collective for streaming sensor data to task_engine 
