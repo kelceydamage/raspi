@@ -1,3 +1,4 @@
+[![Coverage Status](https://coveralls.io/repos/github/kelceydamage/raspi/badge.svg?branch=master)](https://coveralls.io/github/kelceydamage/raspi?branch=master)
 # Drive.so
 
 ## Classes
