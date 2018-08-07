@@ -7,14 +7,14 @@ fi
 
 # precompile c++ modules
 echo -e "PRE_COMPILING PXD\n"
-cython --annotate-coverage coverage.xml $PROJECT/drive.pyx --force --embed --cplus
+cython --annotate-coverage coverage.xml $PROJECT.pyx --force --embed --cplus
 
 # general compile of project modules
 echo -e "RUNNING SETUP.PY\n"
-python3 $PROJECT/setup.py build_ext --inplace --force
+python3 setup.py $PROJECT build_ext --inplace --force
 
-echo -e "DONE\n"
+echo -e "DONE\n" 
 # distribute and cleanup
-#rm -rf $PROJECT/*.cpp
-#rm -rf $PROJECT/*.c
-#rm -rf */*/*/*/*.pyc
+rm -rf $PROJECT*.cpp
+rm -rf $PROJECT*.c
+rm -rf */*/*/*/*.pyc
