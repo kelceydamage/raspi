@@ -59,6 +59,14 @@ RESPONSE_TIME       = 0.5 # 500ms
 LEFT_MOTOR          = 1
 RIGHT_MOTOR         = 2
 
+O_MOVEMENT.speed           = 0
+O_MOVEMENT.initial         = 0
+O_MOVEMENT.direction       = 0
+O_MOVEMENT.acceleration    = False
+O_MOVEMENT.positive        = True
+O_MOVEMENT.gearing         = 1.0
+O_MOVEMENT.test            = False
+
 # Classes
 #---------------------------------------------------------------------------------------------------- <-100
 # Python wrapper if the class needs to be called from Python. Wraps C++ class, mainly used for unit tests.
@@ -73,22 +81,22 @@ cdef class PyWrap_MotorDrive:
     def __getattr__(PyWrap_MotorDrive self, str a):
         return getattr(self.DRIVER, a)
 
-    cpdef register_movement(PyWrap_MotorDrive self, pair[int_fast16_t, int_fast16_t] velocity):
+    cpdef void register_movement(PyWrap_MotorDrive self, pair[int_fast16_t, int_fast16_t] velocity):
         self.DRIVER._register_movement(velocity)
 
-    cpdef configure(PyWrap_MotorDrive self):
+    cpdef void configure(PyWrap_MotorDrive self):
         self.DRIVER._configure()
 
-    cpdef polarity(PyWrap_MotorDrive self, int_fast16_t l, int_fast16_t r):
+    cpdef pair[int_fast16_t, int_fast16_t] polarity(PyWrap_MotorDrive self, int_fast16_t l, int_fast16_t r):
         return self.DRIVER._polarity(l, r)
 
-    cpdef accelerate(PyWrap_MotorDrive self, uint_fast8_t initial, uint_fast8_t speed, bint positive):
+    cpdef cpplist[uint_fast8_t] accelerate(PyWrap_MotorDrive self, uint_fast8_t initial, uint_fast8_t speed, bint positive):
         return self.DRIVER._gen_accelerator(initial, speed, positive)
 
-    cpdef move(PyWrap_MotorDrive self, uint_fast8_t speed, uint_fast8_t initial=0, uint_fast8_t direction=0, bint acceleration=False, bint positive=True, float gearing=1.0, bool test=False):
+    cpdef pair[int_fast16_t, int_fast16_t] move(PyWrap_MotorDrive self, uint_fast8_t speed, uint_fast8_t initial, uint_fast8_t direction, bint acceleration, bint positive, float gearing, bint test):
         return self.DRIVER._move(speed, initial, direction, acceleration, positive, gearing, test)
 
-    cpdef update(PyWrap_MotorDrive self, list args):
+    cpdef pair[int_fast16_t, int_fast16_t] update(PyWrap_MotorDrive self, list args):
         O_MOVEMENT.speed           = args[0]
         O_MOVEMENT.initial         = args[1]
         O_MOVEMENT.direction       = args[2]
@@ -98,10 +106,10 @@ cdef class PyWrap_MotorDrive:
         O_MOVEMENT.test            = args[6]
         return self.DRIVER._update(O_MOVEMENT)
 
-    cpdef graduated_turn(PyWrap_MotorDrive self, float fraction, uint_fast8_t stepping, uint_fast8_t direction):
+    cpdef float graduated_turn(PyWrap_MotorDrive self, float fraction, uint_fast8_t stepping, uint_fast8_t direction):
         return self.DRIVER._graduated_turn(fraction, stepping, direction)
 
-    cpdef movement_type(PyWrap_MotorDrive self, uint_fast8_t direction, uint_fast8_t speed, float gearing):
+    cpdef pair[int_fast16_t, int_fast16_t] movement_type(PyWrap_MotorDrive self, uint_fast8_t direction, uint_fast8_t speed, float gearing):
         return self.DRIVER._movement_type(direction, speed, gearing)
 
 cdef class MotorDrive:
@@ -128,13 +136,13 @@ cdef class MotorDrive:
             p.second = left_motor
         return p
 
-    cdef cpplist[uint_fast8_t] _gen_accelerator(MotorDrive self, uint_fast8_t initial, uint_fast8_t speed, bint positive):
+    cdef cpplist[uint_fast8_t] _gen_accelerator(MotorDrive self, int initial, int speed, bint positive):
         cdef uint_fast8_t i
         cdef uint_fast8_t stepping
         cdef uint_fast8_t start
         cdef uint_fast8_t end
-        cdef cpplist[uint_fast8_t] v
-       
+        cdef cpplist[uint_fast8_t] l_accel
+
         if positive:
             stepping = self.accel_interval
             start = initial
@@ -145,21 +153,19 @@ cdef class MotorDrive:
             end = initial - 1
         i = start
         while i != end:
-           v.push_front(i)
+           l_accel.push_front(i)
            i += stepping
 
-        return v
+        return l_accel
 
     @cython.cdivision(True) 
-    cdef pair[int_fast16_t, int_fast16_t] _move(MotorDrive self, uint_fast8_t speed, uint_fast8_t initial=0, uint_fast8_t direction=0, bint acceleration=False, bint positive=True, float gearing=1.0, bool test=False):
+    cdef pair[int_fast16_t, int_fast16_t] _move(MotorDrive self, uint_fast8_t speed, uint_fast8_t initial, uint_fast8_t direction, bint acceleration, bint positive, float gearing, bint test):
         cdef int i
         cdef int err
         cdef double rt
         cdef p_time.timespec t
         cdef pair[int_fast16_t, int_fast16_t] velocity
-        cdef cpplist[uint_fast8_t] accelerator
-
-        print(speed, initial, direction, acceleration, positive, gearing, test)
+        cdef double f
 
         #if self.duration == 0:
             #return ('ERROR', 'no duration set')
@@ -170,16 +176,16 @@ cdef class MotorDrive:
             self.duration = self.last_speed / self.accel_interval
         
         if acceleration == True:
-            accelerator = self._gen_acelerator(initial, speed, positive)
+            self.accelerator = self._gen_accelerator(initial, speed, positive)
         i = 0
         
         while i <= self.duration:
             
             self.timer.start()
             if acceleration == True:
-                if not accelerator.empty():
-                    speed = accelerator.back()
-                    accelerator.pop_back()
+                if not self.accelerator.empty():
+                    speed = self.accelerator.back()
+                    self.accelerator.pop_back()
                 else:
                     acceleration = False
             
@@ -187,7 +193,7 @@ cdef class MotorDrive:
 
             try:
                 self._register_movement(velocity)
-            except Exception, e:
+            except Exception:
                 print(MOTOR_FAILURE)
 
             self.last_speed = speed
@@ -198,11 +204,14 @@ cdef class MotorDrive:
             i += 1
 
             self.timer.end()
-            rt = RESPONSE_TIME - self.timer._result
-            if rt > 0: 
+            f = (RESPONSE_TIME - self.timer._result) * 1000000000
+            t.tv_nsec = <long>f
+            t.tv_sec = 0
+
+            if t.tv_nsec > 0: 
                 err = p_time.nanosleep(&t, NULL)
                 if err == -1:
-                    printf("CRITICAL: Response Time interupted")
+                    printf("CRITICAL: Response Time interupted\n")
 
             if test == True:
                 return velocity
