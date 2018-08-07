@@ -45,12 +45,9 @@ for file in FILES:
         "{0}".format(file.replace('/', '.')), 
         sources=["{0}{1}".format(file, ext)],
         extra_compile_args=['-std={0}{1}'.format(LANGUAGE, CPP_VERSION)],
-        language=LANGUAGE,
-        compiler_directives={'linetrace': CYTHON_TRACE}
+        language=LANGUAGE
         )
     extentions.append(x)
-
-print(extentions)
 
 if USE_CYTHON:
     try:
@@ -65,7 +62,10 @@ if USE_CYTHON:
         Cython.Compiler.Options.cache_builtins = True
         Cython.Compiler.Options.gcc_branch_hints = True
         Cython.Compiler.Options.embed = "main"
-        extentions = cythonize(extentions)
+        extentions = cythonize(
+            extentions, 
+            compiler_directives={'linetrace': CYTHON_TRACE}
+            )
 
 setup(
     ext_modules = extentions
