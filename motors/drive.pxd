@@ -69,6 +69,7 @@ cdef class PyWrap_MotorDrive:
 
     cdef MotorDrive DRIVER
 
+    cpdef register_movement(PyWrap_MotorDrive self, pair[int_fast16_t, int_fast16_t] velocity)
     cpdef accelerate(PyWrap_MotorDrive self, uint_fast8_t initial, uint_fast8_t speed, bint positive)
     cpdef configure(PyWrap_MotorDrive self)
     cpdef polarity(PyWrap_MotorDrive self, int_fast16_t l, int_fast16_t r)
@@ -88,6 +89,7 @@ cdef class MotorDrive:
     cdef cpplist[uint_fast8_t] acelerator
 
     cdef void _configure(MotorDrive self)
+    cdef void _register_movement(MotorDrive self, pair[int_fast16_t, int_fast16_t] velocity)
     cdef pair[int_fast16_t, int_fast16_t] _movement_type(MotorDrive self, uint_fast8_t direction, uint_fast8_t speed, float gearing)
     cdef pair[int_fast16_t, int_fast16_t] _update(self, movementObject o_move)
     cdef cpplist[uint_fast8_t] _gen_accelerator(MotorDrive self, uint_fast8_t initial, uint_fast8_t speed, bint positive)

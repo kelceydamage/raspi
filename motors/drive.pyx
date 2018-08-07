@@ -50,7 +50,7 @@ FORWARD_RIGHT_BIAS  = 8
 INWARDS             = 9
 OUTWARDS            = 10
 
-#MOTOR_FAILURE       = NotImplementedError
+MOTOR_FAILURE       = NotImplementedError
 
 TRACKED             = True
 RESPONSE_TIME       = 0.5 # 500ms
@@ -72,6 +72,9 @@ cdef class PyWrap_MotorDrive:
 
     def __getattr__(PyWrap_MotorDrive self, str a):
         return getattr(self.DRIVER, a)
+
+    cpdef register_movement(PyWrap_MotorDrive self, pair[int_fast16_t, int_fast16_t] velocity):
+        self.DRIVER._register_movement(velocity)
 
     cpdef configure(PyWrap_MotorDrive self):
         self.DRIVER._configure()
@@ -108,8 +111,12 @@ cdef class MotorDrive:
         self.polarity_bool = False
         self.duration = 0
         self.accel_interval = 1
-        #self.timer = Timer()
+        self.timer = Timer()
         #self.client = TaskClient('control_movement')
+
+    cdef void _register_movement(MotorDrive self, pair[int_fast16_t, int_fast16_t] velocity):
+        pass
+        #self.client.insert('call_motor', velocity)
 
     cdef pair[int_fast16_t, int_fast16_t] _polarity(MotorDrive self, int_fast16_t left_motor, int_fast16_t right_motor):
         cdef pair[int_fast16_t, int_fast16_t] p
@@ -168,7 +175,7 @@ cdef class MotorDrive:
         
         while i <= self.duration:
             
-            #self.timer.start()
+            self.timer.start()
             if acceleration == True:
                 if not accelerator.empty():
                     speed = accelerator.back()
@@ -178,13 +185,11 @@ cdef class MotorDrive:
             
             velocity = self._movement_type(direction, speed, gearing)
 
-            '''
             try:
-                self.register_movement(velocity)
+                self._register_movement(velocity)
             except Exception, e:
                 print(MOTOR_FAILURE)
-                print(velocity)
-            '''
+
             self.last_speed = speed
 
             if direction != 0:
@@ -192,12 +197,12 @@ cdef class MotorDrive:
 
             i += 1
 
-            #self.timer.end()
-            #rt = RESPONSE_TIME - self.timer._result
-            #if rt > 0: 
-            #    err = p_time.nanosleep(&t, NULL)
-            #    if err == -1:
-            #        printf("CRITICAL: Response Time interupted")
+            self.timer.end()
+            rt = RESPONSE_TIME - self.timer._result
+            if rt > 0: 
+                err = p_time.nanosleep(&t, NULL)
+                if err == -1:
+                    printf("CRITICAL: Response Time interupted")
 
             if test == True:
                 return velocity
