@@ -12,3 +12,4 @@ htmlcov
 .coverage
 .pytest_cache
 *.so
+__pycache__
