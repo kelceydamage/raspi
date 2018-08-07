@@ -67,7 +67,15 @@ def test_move():
     # 
     # Returns velocity == pair[int_fast16_t, int_fast16_t]
     DRIVER.duration = 1
-    assert DRIVER.move(5, direction=0, gearing=1/2, test=True) == (2, 2)
+    assert DRIVER.move(
+        speed=5, 
+        initial=0, 
+        direction=0, 
+        acceleration=False,
+        positive=True,
+        gearing=1/2, 
+        test=True
+        ) == (2, 2)
 
 # Test the update function which is a wrapper for the move function allowing the passing of a list 
 # of args.
