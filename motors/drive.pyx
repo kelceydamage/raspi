@@ -34,7 +34,7 @@ from libc.stdio cimport printf
 cimport cython
 cimport posix.time as p_time
 
-# Constants
+# Globals
 #---------------------------------------------------------------------------------------------------- <-100
 # Numerical identifiers for basic movement patterns
 FORWARD             = 0
