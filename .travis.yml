@@ -4,7 +4,7 @@ python:
   - 3.6
 install:
   - pip install -r requirements.txt
-  - bash BUILD.sh motors
+  - bash BUILD.sh motors/drive
 script:
   - py.test --doctest-modules -v --cov=raspi --cov-report=term-missing
 after_success:

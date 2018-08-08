@@ -9,3 +9,8 @@ build/*
 build/
 *,cover
 htmlcov
+.coverage
+.pytest_cache
+*.so
+__pycache__
+.DS_Store

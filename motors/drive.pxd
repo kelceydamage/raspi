@@ -18,34 +18,49 @@
 # Imports
 #---------------------------------------------------------------------------------------------------- <-100
 from libcpp.list cimport list as cpplist
+from libc.stdint cimport uint_fast8_t
+from libc.stdint cimport int_fast16_t
 from libcpp cimport bool
 from libcpp.vector cimport vector
 from libcpp.utility cimport pair
 cimport cython
 cimport posix.time as p_time
 
+# Structs
+#---------------------------------------------------------------------------------------------------- <-100
+cdef struct movementObject:
+    uint_fast8_t speed
+    uint_fast8_t initial
+    uint_fast8_t direction
+    bint acceleration
+    bint positive
+    float gearing
+    bint test
+
 # Constants
 #---------------------------------------------------------------------------------------------------- <-100
 # Numerical identifiers for basic movement patterns
-cdef int FORWARD
-cdef int REVERSE
-cdef int LEFT
-cdef int RIGHT
-cdef int STOP
-cdef int REVERSE_LEFT_BIAS
-cdef int REVERSE_RIGHT_BIAS
-cdef int FORWARD_LEFT_BIAS
-cdef int FORWARD_RIGHT_BIAS
-cdef int INWARDS
-cdef int OUTWARDS
+cdef public uint_fast8_t FORWARD
+cdef public uint_fast8_t REVERSE
+cdef public uint_fast8_t LEFT
+cdef public uint_fast8_t RIGHT
+cdef public uint_fast8_t STOP
+cdef public uint_fast8_t REVERSE_LEFT_BIAS
+cdef public uint_fast8_t REVERSE_RIGHT_BIAS
+cdef public uint_fast8_t FORWARD_LEFT_BIAS
+cdef public uint_fast8_t FORWARD_RIGHT_BIAS
+cdef public uint_fast8_t INWARDS
+cdef public uint_fast8_t OUTWARDS
 
 #cdef object MOTOR_FAILURE
-cdef bint TRACKED
-cdef double RESPONSE_TIME
+cdef public bint TRACKED
+cdef public double RESPONSE_TIME
 
 # Motor ports. Default settings are for MegaPi
-cdef int LEFT_MOTOR
-cdef int RIGHT_MOTOR
+cdef public int LEFT_MOTOR
+cdef public int RIGHT_MOTOR
+
+cdef movementObject O_MOVEMENT
 
 # Classes
 #---------------------------------------------------------------------------------------------------- <-100
@@ -54,29 +69,34 @@ cdef class PyWrap_MotorDrive:
 
     cdef MotorDrive DRIVER
 
-    cpdef accelerate(PyWrap_MotorDrive self, int initial, int speed, bint positive)
-    cpdef configure(PyWrap_MotorDrive self)
-    cpdef polarity(PyWrap_MotorDrive self, int l, int r)
-    cpdef move(PyWrap_MotorDrive self, int speed, int initial=?, int direction=?, bint acceleration=?, bint positive=?, double gearing=?, bool test=?)
+    cpdef void register_movement(PyWrap_MotorDrive self, pair[int_fast16_t, int_fast16_t] velocity)
+    cpdef cpplist[uint_fast8_t] accelerate(PyWrap_MotorDrive self, uint_fast8_t initial, uint_fast8_t speed, bint positive)
+    cpdef void configure(PyWrap_MotorDrive self)
+    cpdef pair[int_fast16_t, int_fast16_t] polarity(PyWrap_MotorDrive self, int_fast16_t l, int_fast16_t r)
+    cpdef pair[int_fast16_t, int_fast16_t] move(PyWrap_MotorDrive self, uint_fast8_t speed, uint_fast8_t initial, uint_fast8_t direction, bint acceleration, bint positive, float gearing, bint test)
+    cpdef pair[int_fast16_t, int_fast16_t] update(PyWrap_MotorDrive self, list args)
+    cpdef float graduated_turn(PyWrap_MotorDrive self, float fraction, uint_fast8_t stepping, uint_fast8_t direction)
+    cpdef pair[int_fast16_t, int_fast16_t] movement_type(PyWrap_MotorDrive self, uint_fast8_t direction, uint_fast8_t speed, float gearing)
 
 cdef class MotorDrive:
 
-    cdef int last_direction
-    cdef int last_speed
-    cdef public cython.int accel_interval
+    cdef uint_fast8_t last_direction
+    cdef uint_fast8_t last_speed
+    cdef public uint_fast8_t accel_interval
     cdef public int duration
-    cdef public bool polarity_bool
+    cdef public bint polarity_bool
     cdef Timer timer
-    cdef cpplist[int] acelerator
+    cdef cpplist[uint_fast8_t] accelerator
+
+    cdef cpplist[uint_fast8_t] _gen_accelerator(MotorDrive self, int a, int b, bint c)
 
     cdef void _configure(MotorDrive self)
-    cdef pair[int, int] _movement_type(MotorDrive self, int direction, int speed, float gearing)
-    cdef void _update(self, vector[int] args)
-    cdef cpplist[int] _gen_accelerator(MotorDrive self, int initial, int speed, bint positive)
-    cdef pair[int, int] _polarity(self, int left_motor, int right_motor)
-    cdef pair[int, int] _move(MotorDrive self, int speed, int initial=?, int direction=?, bint acceleration=?, bint positive=?, double gearing=?, bool test=?)
-    cdef double _graduated_turn(MotorDrive self, double fraction, int stepping, int direction)
-    cdef pair[int, int] _movement_type(MotorDrive self, int direction, int speed, float gearing)
+    cdef void _register_movement(MotorDrive self, pair[int_fast16_t, int_fast16_t] velocity)
+    cdef pair[int_fast16_t, int_fast16_t] _movement_type(MotorDrive self, uint_fast8_t direction, uint_fast8_t speed, float gearing)
+    cdef pair[int_fast16_t, int_fast16_t] _update(self, movementObject o_move)
+    cdef pair[int_fast16_t, int_fast16_t] _polarity(self, int_fast16_t left_motor, int_fast16_t right_motor)
+    cdef pair[int_fast16_t, int_fast16_t] _move(MotorDrive self, uint_fast8_t speed, uint_fast8_t initial, uint_fast8_t direction, bint acceleration, bint positive, float gearing, bint test)
+    cdef float _graduated_turn(MotorDrive self, float fraction, uint_fast8_t stepping, uint_fast8_t direction)
 
 cdef class Timer:
 
