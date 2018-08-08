@@ -77,7 +77,7 @@ group_3.add_argument(
     default=False,
     help="Print meta header"
     )
-args = parser.parse_args()
+args = parser.parse_known_args()
 
 # Classes
 #-------------------------------------------------------------------------------- <-80
