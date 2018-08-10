@@ -23,7 +23,7 @@
 
 # Imports
 #-------------------------------------------------------------------------------- <-80
-from client.client import DataClient
+from raspi.task_engine.client.client import DataClient
 import time
 
 # Globals
