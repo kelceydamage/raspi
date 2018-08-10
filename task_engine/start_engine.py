@@ -33,7 +33,7 @@ os.sys.path.append(
         )
     )
 from registry.registry import load_tasks
-from raspi.engine.workers import TaskWorker, DataWorker
+from engine.workers import TaskWorker, DataWorker
 from engine.routers import Router
 from conf.configuration import *
 from common.spawner import ProcessHandler

@@ -36,10 +36,10 @@ os.sys.path.append(
     )
 from task_engine.conf.configuration import ENABLE_STDOUT
 from task_engine.conf.configuration import ENABLE_DEBUG
-from raspi.common.datatypes import TaskFrame
-from raspi.common.datatypes import MetaFrame
-from raspi.common.datatypes import DataFrame
-from raspi.common.datatypes import prepare
+from common.datatypes import TaskFrame
+from common.datatypes import MetaFrame
+from common.datatypes import DataFrame
+from common.datatypes import prepare
 from common.print_helpers import printc
 from common.print_helpers import Colours
 from tasks import *

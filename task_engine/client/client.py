@@ -22,9 +22,9 @@ os.sys.path.append(
 from task_engine.conf.configuration import RESPONSE_TIME
 from task_engine.conf.configuration import ROUTER
 from task_engine.conf.configuration import ROUTER_FRONTEND
-from raspi.common.datatypes import TaskFrame
-from raspi.common.datatypes import MetaFrame
-from raspi.common.datatypes import prepare
+from common.datatypes import TaskFrame
+from common.datatypes import MetaFrame
+from common.datatypes import prepare
 import time
 import zmq
 import json

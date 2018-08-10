@@ -5,6 +5,7 @@ python:
 install:
   - pip install -r requirements.txt
   - bash BUILD.sh motors/drive
+  - bash BUILD.sh common/datatypes
 script:
   - py.test --doctest-modules -v --cov=raspi --cov-report=term-missing
 after_success:
