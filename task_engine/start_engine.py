@@ -159,6 +159,7 @@ def print_meta(functions):
 #-------------------------------------------------------------------------------- <-80
 if __name__ == '__main__':
     functions = load_tasks('/git/projects/cython/personal/raspi/tasks')
+    args = args[0]
     if not args.mode or not args.address:
         if args.meta:
             print_meta(functions)
