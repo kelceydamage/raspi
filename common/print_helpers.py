@@ -68,9 +68,12 @@ def printc(message, colour):
 	print('{0}{1}{2}'.format(colour, message, endc))
 
 def print_package(message):
-	print('PACK: {0}, SIZE: {1}'.format(message['pack'], message['size']))
+	if 'id' in message.keys():
+		print('ID: {0} PACK: {1}, SIZE: {2}'.format(message['id'], message['pack'], message['size']))
+		print('ROLE: {0} SERIAL {1}'.format(message['role'], message['serial']))
 	if 'data' in message.keys():
 		for item in message['data']:
+			item = eval(item.decode())
 			if type(list(item.values())[0]) is list:
 				print('JOB-ID: {0}, CUDA Response Time: {1}'.format(list(item.keys())[0], list(item.values())[0][0][1]))
 			else:
