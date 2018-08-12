@@ -49,7 +49,7 @@ import zmq
 
 # Globals
 #-------------------------------------------------------------------------------- <-80
-VERSION                 = 0.1
+VERSION                 = b'0.1'
 COLOURS                 = Colours()
 
 # Classes
@@ -75,10 +75,13 @@ REQUIRES:       host [ip/hostname]
         self.data = DataFrame(0)
         self.task = TaskFrame(0)
         self.meta = MetaFrame(0)
-        self.meta.message['version'] = self.version
+        self.meta.set_version(self.version)
 
     def deserialize(self, frame):
-        return json.loads(frame.decode())
+        return eval(frame.decode(), {"__builtins__":None}, {})
+
+    def serialize(self, frame):
+        return str(frame).encode()
 
     def log(self, action, message):
         if ENABLE_STDOUT == True:
@@ -97,13 +100,13 @@ REQUIRES:       Frame [Frame classtype]
                 response [task output]
         """
         meta = self.deserialize(meta)
-        self.meta.message['serial'] = meta['serial']
-        self.meta.message['part'] = meta['part']
-        self.meta.message['pack'] = meta['pack']
-        self.meta.message['length'] = 1
-        self.data.message['pack'] = meta['pack']
-        self.data.message['size'] = len(response)
-        self.data.message['data'] = response
+        self.meta.set_serial(meta['serial'])
+        self.meta.set_part(meta['part'])
+        self.meta.set_pack(meta['pack'])
+        self.meta.set_length(1)
+        self.data.set_pack(meta['pack'])
+        self.data.set_size(len(response))
+        self.data.set_data(response)
         meta = self.meta.serialize()
         frame = self.data.serialize()
         return [meta, frame]
@@ -163,9 +166,9 @@ DESCRIPTION:    Initialize worker.
         self.functions = functions
         self.type = 'TASK'
         self.pid = pid
-        self.meta.message['role'] = 'responder'
-        self.meta.message['id'] = '{0}-{1}'.format(self.type, self.pid)
-        self.meta.message['type'] = 'ACK'
+        self.meta.set_role(b'responder')
+        self.meta.set_id('{0}-{1}'.format(self.type, self.pid).encode())
+        self.meta.set_type(b'ACK')
         self.hash = self.task.hash
 
     def run_task(self, request):
@@ -184,15 +187,13 @@ REQUIRES:       request message [JSON]
             try:
                 task = frame['task']
                 args = frame['args']
+                nargs = frame['nargs']
                 kwargs = frame['kwargs']
-                response.append({
-                    'job-{0}'.format(frame['pack']): eval(self.functions[task])(*args, **kwargs)
-                    })
+                r = {'job-{0}'.format(frame['pack']): eval(self.functions[task.decode()])(*args, *nargs, **kwargs)}
             except Exception as e:
-                response.append({
-                    'job-{0}'.format(frame['pack']): 'ERROR: {0}'.format(e)
-                })
+                r = {'job-{0}'.format(frame['pack']): 'ERROR: {0}'.format(e)}
             i += 1
+            response.append(self.serialize(r))
         return response
 
 class DataWorker(Worker):
@@ -212,9 +213,9 @@ DESCRIPTION:    Initialize worker.
         self.service = service
         self.type = 'DATA'
         self.pid = pid
-        self.meta.message['role'] = 'publisher'
-        self.meta.message['id'] = '{0}-{1}'.format(self.type, self.pid)
-        self.meta.message['type'] = 'PUB'
+        self.meta.set_role(b'publisher')
+        self.meta.set_id('{0}-{1}'.format(self.type, self.pid).encode())
+        self.meta.set_type(b'PUB')
         self.hash = self.data.hash
 
     def run_task(self):
@@ -259,6 +260,8 @@ DESCRIPTION:    Start listening for tasks.
 
 # Functions
 #-------------------------------------------------------------------------------- <-80
+def _test(obj):
+    return True
 
 # Main
 #-------------------------------------------------------------------------------- <-80
