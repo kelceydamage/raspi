@@ -55,51 +55,49 @@ class TaskClient(object):
 
     def digest(self, message):
         if isinstance(message, str):
-            return hashlib.md5(''.join(message).encode()).hexdigest()
+            return hashlib.md5(''.join(message).encode()).hexdigest().encode()
         elif isinstance(message, bytes):
-            return hashlib.md5(''.join(message)).hexdigest()
+            return hashlib.md5(''.join(message)).hexdigest().encode()
 
-    def build_task_frame(self, task, args=[], kwargs={}):
+    def build_task_frame(self, task, args=[], nargs=[], kwargs={}):
         Task = TaskFrame(self.pack)
         Task.digest()
-        Task.message['pack'] = Task.hash
-        Task.message['task'] = task
-        Task.message['args'] = args
-        Task.message['kwargs'] = kwargs
-        Task.message['pack'] = self.digest(str(time.time() - self.pack))
+        #Task.message['pack'] = Task.hash
+        Task.set_task(task.encode())
+        Task.set_args(args)
+        Task.set_nargs(nargs)
+        Task.set_kwargs(kwargs)
+        Task.set_pack(self.digest(str(time.time() - self.pack)))
         self.queue.append(Task.serialize())
 
     def build_meta_frame(self, id):
         Meta = MetaFrame(self.pack)
         Meta.digest()
-        Meta.message['pack'] = self.pack
-        Meta.message['id'] = id
-        Meta.message['version'] = 0.1
-        Meta.message['type'] = 'REQ'
-        Meta.message['role'] = self.name
+        Meta.set_pack(str(self.pack).encode())
+        Meta.set_id(bytes(id, 'utf-8'))
+        Meta.set_version(b'0.1')
+        Meta.set_type(b'REQ')
+        Meta.set_role(self.name.encode())
         self.meta = Meta
 
     def task_queue(self):
-        message_hash = self.digest(self.queue)
-        self.meta.message['length'] = len(self.queue)
-        self.meta.message['serial'] = message_hash
+        message_hash = self.digest(str(self.queue))
+        self.meta.set_length(len(self.queue))
+        self.meta.set_serial(message_hash)
         envelope = [self.meta.serialize()] + self.queue
         print("Client Sending...")
-        print(envelope)
         self.task_socket.send_multipart(envelope)
-        print("Client Receiving")
         response = self.task_socket.recv_multipart()
-        print(response)
+        print("Client Received")
         self.results_queue.append(response)
-
-        print('[CLIENT] recv: {0}'.format(self.results_queue[-1]))
+        #print('[CLIENT] recv: {0}'.format(self.results_queue[-1]))
 
     def setup_container(self, name):
         self.generate_packing_id()
         self.build_meta_frame(name)
 
-    def insert(self, task, args):
-        self.build_task_frame(task, args)
+    def insert(self, task, args=[], nargs=[], kwargs={}):
+        self.build_task_frame(task, args, nargs, kwargs)
 
     def send(self):
         self.task_queue()
@@ -108,7 +106,7 @@ class TaskClient(object):
 
     def deserialize(self, frame):
         try:
-            return [json.loads(x.decode()) for x in frame]
+            return [eval(x.decode(), {"__builtins__":None}, {}) for x in frame]
         except Exception as e:
             return frame
 

@@ -51,17 +51,18 @@ if __name__ == '__main__':
     # ------------------------  
     # Create a meta frame for the package
     TC.setup_container('test')
+    print(TC.meta.get_message())
 
     # Simple loop to express creating multiple task frames for each task 
     # in the package
-    for i in range(10):
+    for i in range(1000):
 
         # Build a task frame requesting the execution of task_get_count 
         # with the arguments 2 and 3
-        TC.insert('task_get_count', [2, 3])
+        TC.insert('task_get_count', nargs=[2, 3])
         #TC.insert('task_get_count', [32, 32])
 
-    # Send the packageßßßßß
+    # Send the package
     start = time.time()
     TC.send()
 
@@ -75,8 +76,10 @@ if __name__ == '__main__':
     printc('RUN: {0}, params=[2, 3]'.format('task_get_count'), COLOURS.GREEN)
     #printc('RUN: {0}, matrix=[32 * 32]'.format('task_double_cuda_matrix'), COLOURS.GREEN)
     print('---------------------------------------------------------------')
-    for item in last[1:]:
-        print_package(item)
+    #for item in last:
+        #print_package(item)
+    print('SAMPLE: ', last[1]['data'][0])
+    print('COUNT: ', len(last[1]['data']))
     print('---------------------------------------------------------------')
     printc('RUNTIME: {0}s'.format(time.time() - t2), COLOURS.BLUE)
     print('---------------------------------------------------------------')
