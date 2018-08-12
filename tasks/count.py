@@ -33,7 +33,8 @@ SUMMARY:		Starter script for storing registered functions
 # Functions
 #-------------------------------------------------------------------------------- <-80
 def task_get_count(*args, **kwargs):
+	#print(args, kwargs)
 	return sum(args)
 
-# Main
+# Mainß
 #-------------------------------------------------------------------------------- <-80
