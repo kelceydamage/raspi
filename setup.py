@@ -48,15 +48,46 @@ if __name__ == '__main__':
     extentions = []
     print('COMPILING: {0}\n'.format(FILES))
 
+    '''
     for file in FILES:
         sys.argv.pop(sys.argv.index(file))
         x = Extension(
             "{0}".format(file.replace('/', '.')), 
             sources=["{0}{1}".format(file, ext)],
             extra_compile_args=['-std={0}{1}'.format(LANGUAGE, CPP_VERSION)],
-            language=LANGUAGE
+            language=LANGUAGE,
+            include_dirs=['.']
             )
         extentions.append(x)
+    '''
+
+    extentions = [
+    Extension(
+        "common.marshalling", 
+        sources=["common/marshalling{0}".format(ext)],
+        extra_compile_args=['-Wno-strict-prototypes', '-std=c++11'],
+        language="c++"
+        ),
+    Extension(
+        "common.datatypes", 
+        sources=["common/datatypes{0}".format(ext)],
+        extra_compile_args=['-Wno-strict-prototypes', '-std=c++11'],
+        language="c++"
+        ),
+    Extension(
+        "task_engine.client.client", 
+        sources=["task_engine/client/client{0}".format(ext)],
+        extra_compile_args=['-Wno-strict-prototypes', '-std=c++11'],
+        language="c++"
+        ),
+    Extension(
+        "task_engine.engine.routers", 
+        sources=["task_engine/engine/routers{0}".format(ext)],
+        extra_compile_args=['-Wno-strict-prototypes', '-std=c++11'],
+        language="c++"
+        )
+    ]
+    
         
     if USE_CYTHON:
         try:
@@ -76,5 +107,6 @@ if __name__ == '__main__':
                 compiler_directives={'linetrace': CYTHON_TRACE}
                 )
     setup(
-        ext_modules = extentions
+        ext_modules = extentions,
+        include_dirs=["."]
     )
