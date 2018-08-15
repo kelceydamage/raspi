@@ -51,6 +51,21 @@ DESCRIPTION:
     """
     def __cinit__(Frame self, uint_fast32_t pack):
         self.pack = pack
+
+    cpdef string serialize2(Frame self):
+        cdef unsigned long i
+        cdef dict d = self._message[0]
+        cdef unsigned long l = len(d) 
+        cdef string s
+        for i in range(0, l):
+            s.append(b"'")
+            #s.append(d.keys()[i].encode())
+            s.append(b'=')
+            #s.append(d[d.keys()[i]].encode())
+            s.append(b',')
+
+    cpdef dict deserialize2(Frame self, string s):
+        pass
         
     cpdef string serialize(Frame self):
         """
@@ -59,12 +74,15 @@ DESCRIPTION:    Convert self.message into a json object
         """
         return str(self.get_message()).encode()
 
-    cpdef Frame deserialize(Frame self, string message):
+    cpdef dict deserialize(Frame self, string message):
         """
 NAME:           serialize
 DESCRIPTION:    Convert self.message into a json object
         """
-        return dict(self.message.decode())
+        return eval(message.decode(), {"__builtins__":None}, {})
+
+    cpdef void load(Frame self, dict message):
+        self.gen_message(message)
 
     cpdef void _pack_frame(Frame self, dict kwargs):
         """

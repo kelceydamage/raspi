@@ -77,8 +77,12 @@ cdef class Frame:
     cdef public dict message
     cdef public string hash
 
+    cpdef string serialize2(Frame self)
+    cpdef dict deserialize2(Frame self, string s)
+
+    cpdef void load(Frame self, dict message)
     cpdef string serialize(Frame self)
-    cpdef Frame deserialize(Frame self, string message)
+    cpdef dict deserialize(Frame self, string message)
     cpdef void _pack_frame(Frame self, dict kwargs)
     cpdef void digest(Frame self)
 
