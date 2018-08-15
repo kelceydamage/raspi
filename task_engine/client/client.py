@@ -27,7 +27,6 @@ from common.datatypes import MetaFrame
 from common.datatypes import prepare
 import time
 import zmq
-import json
 import hashlib
 
 # Globals
@@ -62,7 +61,6 @@ class TaskClient(object):
     def build_task_frame(self, task, args=[], nargs=[], kwargs={}):
         Task = TaskFrame(self.pack)
         Task.digest()
-        #Task.message['pack'] = Task.hash
         Task.set_task(task.encode())
         Task.set_args(args)
         Task.set_nargs(nargs)
@@ -86,6 +84,7 @@ class TaskClient(object):
         self.meta.set_serial(message_hash)
         envelope = [self.meta.serialize()] + self.queue
         print("Client Sending...")
+        #print('ENVELOPE: ', envelope)
         self.task_socket.send_multipart(envelope)
         response = self.task_socket.recv_multipart()
         print("Client Received")

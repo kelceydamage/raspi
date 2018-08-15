@@ -48,7 +48,6 @@ import sys
 import os
 import zmq
 import time
-import json
 import math
 
 # Globals
@@ -81,17 +80,6 @@ DESCRIPTION:    Routes messages to available workers.
         self.meta.set_role(b'chunker')
         self.meta.set_version(VERSION)       
         self.buffer = []
-
-    def deserialize(self, frame, _type=''):
-        if _type == 'dict':
-            return eval(frame.decode(), {"__builtins__":None}, {})
-        else:
-            meta = MetaFrame(0)
-            meta.gen_message(eval(frame.decode(), {"__builtins__":None}, {}))
-            return meta
-
-    def serialize(self, frame):
-        return str(frame).encode()
 
     def register_peers(self, peers):
         """
@@ -145,7 +133,8 @@ NAME:           chunk
 DESCRIPTION:    chunk messages to better load balance
 REQUIRES:       message
         """
-        meta = self.deserialize(message[2])
+        meta = MetaFrame(0)
+        meta.load(meta.deserialize(message[2]))
         count = math.ceil(float(len(message[3:])) / CHUNKING_SIZE)
         if count < 1:
             count = 1
@@ -168,31 +157,34 @@ REQUIRES:       message
 
     def assemble(self, message):
         try:
-            meta = self.deserialize(message[2])
+            meta = MetaFrame(0)
+            meta.load(meta.deserialize(message[2]))
             self.state[meta.get_serial()] -= 1
             self.log('Forwarding', 'BACKEND', 'Assembling: {0}, Part: {1}'.format(
                 meta.get_serial(),
                 self.state[meta.get_serial()]
                 ))
             header = message[:2]
-            source = self.deserialize(message[3], 'dict')
-            l = source['size']
-            package = source['data']
+            data = DataFrame(0)
+            data.load(data.deserialize(message[3]))
             try:
-                assert len(package) == l
+                assert len(data.get_data()) == data.get_size()
             except AssertionError as e:
                 self.log('Forwarding', 'BACKEND', 'Error: {0}'.format(
-                    'Package contents ({0}) less then noted in manifest ({0})'.format(len(package), l)
+                    'Package contents ({0}) less then noted in manifest ({0})'.format(len(data.get_data()), data.get_size())
                 ))
-            self.buffer = self.buffer + package
+            self.buffer.extend(data.get_data())
             if self.state[meta.get_serial()] == 0:
+                message = []
                 meta.set_role(b'assembler')
                 meta.set_size(len(self.buffer))
                 data = DataFrame(0)
                 data.set_data(self.buffer)
                 data.set_size(len(self.buffer))
                 data.set_pack(meta.get_pack())
-                message = header + [self.serialize(meta.get_message())] + [data.serialize()]
+                message.extend(header)
+                message.append(meta.serialize())
+                message.append(data.serialize())
                 self.frontend.send_multipart(message)
                 self.buffer = []
                 del self.state[meta.get_serial()]
@@ -210,6 +202,7 @@ DESCRIPTION:    Main routing component [loop]
         while True:
             socks = dict(self.poller.poll())
             if socks.get(self.frontend) == zmq.POLLIN:
+                print('router-recv')
                 message = self.frontend.recv_multipart()
                 if CHUNKING == True:
                     self.log(

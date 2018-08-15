@@ -77,12 +77,6 @@ REQUIRES:       host [ip/hostname]
         self.meta = MetaFrame(0)
         self.meta.set_version(self.version)
 
-    def deserialize(self, frame):
-        return eval(frame.decode(), {"__builtins__":None}, {})
-
-    def serialize(self, frame):
-        return str(frame).encode()
-
     def log(self, action, message):
         if ENABLE_STDOUT == True:
             printc('[WORKER-{0}({1})] {3}: {2}'.format(
@@ -99,17 +93,14 @@ DESCRIPTION:    method for packing a message to be send ready.
 REQUIRES:       Frame [Frame classtype]
                 response [task output]
         """
-        meta = self.deserialize(meta)
-        self.meta.set_serial(meta['serial'])
-        self.meta.set_part(meta['part'])
-        self.meta.set_pack(meta['pack'])
+        self.meta.set_serial(meta.get_serial())
+        self.meta.set_part(meta.get_part())
+        self.meta.set_pack(meta.get_pack())
         self.meta.set_length(1)
-        self.data.set_pack(meta['pack'])
+        self.data.set_pack(self.meta.get_pack())
         self.data.set_size(len(response))
         self.data.set_data(response)
-        meta = self.meta.serialize()
-        frame = self.data.serialize()
-        return [meta, frame]
+        return [self.meta.serialize(), self.data.serialize()]
 
     def start(self):
         """
@@ -119,35 +110,33 @@ DESCRIPTION:    Start listening for tasks.
         self.log('Listener online', '')
         while True:
             message = self._socket.recv_multipart()
-            message = self.recv_validation(message)
-            if message == None:
+            meta = MetaFrame(0)
+            meta.load(meta.deserialize(message[0]))
+            valid = self.recv_validation(meta, message)
+            if valid == False:
                 message = self.message(b'ERROR: Invalid request', self.meta.serialize())
             else:
-                meta = self.deserialize(message[0])
+                meta = MetaFrame(0)
+                meta.load(meta.deserialize(message[0]))
                 self.log(
                     'Received task', 
-                    'Package {0}, Chunk {1}'.format(meta['serial'], meta['part']
-                    ))
+                    'Package {0}, Chunk {1}'.format(meta.get_serial(), meta.get_part())
+                    )
                 #self.log('Received task', meta)
                 response = self.run_task(message[1:])
-                message = self.message(response, message[0])
+                message = self.message(response, meta)
                 #self.log('Task complete', message[0])
             self._socket.send_multipart(message)
             
 
-    def recv_validation(self, message):
+    def recv_validation(self, meta, message):
         """
 NAME:           recv_validation
 DESCRIPTION:    Validate incoming requests
         """
-        val1 = False
-        meta = self.deserialize(message[0])
-        if meta['length'] == len(message[1:]):
-            val1 = True
-        if val1 == True:
-            return message
-        else:
-            return None
+        if meta.get_length() == len(message[1:]):
+            return True
+        return False
 
 class TaskWorker(Worker):
     """
@@ -182,18 +171,19 @@ REQUIRES:       request message [JSON]
         """
         i = 0
         response = []
-        for frame in request:
-            frame = self.deserialize(frame)
+        for item in request:
+            task = TaskFrame(0)
+            task.load(task.deserialize(item))
             try:
-                task = frame['task']
-                args = frame['args']
-                nargs = frame['nargs']
-                kwargs = frame['kwargs']
-                r = {'job-{0}'.format(frame['pack']): eval(self.functions[task.decode()])(*args, *nargs, **kwargs)}
+                func = task.get_task()
+                args = task.get_args()
+                nargs = task.get_nargs()
+                kwargs = task.get_kwargs()
+                r = {'job-{0}'.format(task.get_pack()): eval(self.functions[func.decode()])(*args, *nargs, **kwargs)}
             except Exception as e:
                 r = {'job-{0}'.format(frame['pack']): 'ERROR: {0}'.format(e)}
             i += 1
-            response.append(self.serialize(r))
+            response.append(str(r).encode())
         return response
 
 class DataWorker(Worker):
