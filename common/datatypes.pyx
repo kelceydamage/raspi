@@ -36,8 +36,11 @@ from libcpp.unordered_map cimport unordered_map
 from libc.stdint cimport uint_fast32_t
 from libc.stdint cimport int_fast16_t
 from libc.stdio cimport printf
+from libc.stdio cimport sprintf
 from libc.stdlib cimport atoi
 from posix cimport time as p_time
+import base64
+import ujson
 
 # Globals
 #-------------------------------------------------------------------------------- <-80
@@ -52,36 +55,71 @@ DESCRIPTION:
     def __cinit__(Frame self, uint_fast32_t pack):
         self.pack = pack
 
-    cpdef string serialize2(Frame self):
+    cdef vector[string] encode_l(Frame self, list _list, bint encoded=False):
+        cdef vector[string] v
         cdef unsigned long i
-        cdef dict d = self._message[0]
-        cdef unsigned long l = len(d) 
+        cdef unsigned long l = len(_list)
         cdef string s
         for i in range(0, l):
-            s.append(b"'")
-            #s.append(d.keys()[i].encode())
-            s.append(b'=')
-            #s.append(d[d.keys()[i]].encode())
-            s.append(b',')
+            if encoded:
+                s = _list[i].encode()
+            else:
+                s = base64.b64encode(ujson.dumps(_list[i]).encode())
+            v.push_back(s)
+        return v
 
-    cpdef dict deserialize2(Frame self, string s):
-        pass
+    cdef list decode_l(Frame self, vector[string] v, bint encoded=False):
+        cdef list _list = []
+        cdef unsigned long i
+        cdef unsigned long l = v.size()
+        cdef str s
+        for i in range(0, l):
+            _list.append(ujson.loads(base64.b64decode(v[i])))
+        return _list
+
+    cdef dict decode_d(Frame self, map[char*, char*] m):
+        cdef dict _dict = {}
+        cdef pair[char*, char*] p
+        for p in m:
+            _dict[p.first.decode()] = p.second.decode()
+        return _dict
+
+    cdef map[char*, char*] encode_d(Frame self, dict _dict):
+        cdef map[char*, char*] _map
+        cdef pair[char*, char*] p
+        cdef string _k
+        cdef string _v
+        for k in _dict:
+            _k = k.encode()
+            if isinstance(_dict[k], bytes):
+                _v = _dict[k]
+            else:
+                _v = _dict[k].encode()
+            p.first = <char*>_k.c_str()
+            p.second = <char*>_v.c_str()
+            _map.insert(p)
+        return _map
+
+    cdef string _serialize(Frame self, object obj):
+        return (ujson.dumps(obj)).encode()
         
     cpdef string serialize(Frame self):
         """
 NAME:           serialize
 DESCRIPTION:    Convert self.message into a json object
         """
-        return str(self.get_message()).encode()
+        return self._serialize(self.get_message())
 
-    cpdef dict deserialize(Frame self, string message):
+    cpdef object deserialize(Frame self, string message):
         """
 NAME:           serialize
 DESCRIPTION:    Convert self.message into a json object
         """
-        return eval(message.decode(), {"__builtins__":None}, {})
+        #return eval(message.decode(), {"__builtins__":None}, {})
+        return ujson.loads(message.decode())
 
     cpdef void load(Frame self, dict message):
+        #self.message = message
         self.gen_message(message)
 
     cpdef void _pack_frame(Frame self, dict kwargs):
@@ -104,16 +142,6 @@ DESCRIPTION:    Frame object for metadata
         super(MetaFrame, self).__init__(pack)
         self._message = <MetaMessage*>&M_MESSAGE
         self._message.part = <uint_fast16_t>0
-        self.message = {
-            'id': '',
-            'role': '',
-            'version': '',
-            'type': '',
-            'pack': '',
-            'serial': '',
-            'part': 0,
-            'length': ''
-        }
         self.digest()
 
     cpdef MetaMessage get_message(MetaFrame self):
@@ -190,16 +218,18 @@ REQUIRES:       self.id [formatted as '{ROLE}-{PID}'] Example: 'W-3223'
                 self.type [ACK, DATAGRAM, etc...]
                 self.pack [Package ID]
         """
+
         try:
-            self._message.id = <string>params['id']
-            self._message.role = <string>params['role']
-            self._message.version = <string>params['version']
-            self._message.type = <string>params['type']
-            self._message.pack = <string>params['pack']
-            self._message.serial = <string>params['serial']
+            self._message.id = <string>params['id'].encode()
+            self._message.role = <string>params['role'].encode()
+            self._message.version = <string>params['version'].encode()
+            self._message.type = <string>params['type'].encode()
+            self._message.pack = <string>params['pack'].encode()
+            self._message.serial = <string>params['serial'].encode()
             self._message.part = <uint_fast16_t>params['part']
             self._message.length = <uint_fast16_t>params['length']
         except Exception as e:
+            print(str(e))
             self._message.error = b'Missing key parameter'
 
 cdef class DataFrame(Frame):
@@ -210,10 +240,6 @@ DESCRIPTION:    Frame object for data
     def __cinit__(DataFrame self, uint_fast32_t pack):
         super(DataFrame, self).__init__(pack)
         self._message = <DataMessage*>&D_MESSAGE
-        self.message = {
-            'data': '',
-            'pack': ''
-        }   
         self.digest()
 
     cpdef DataMessage get_message(DataFrame self):
@@ -238,11 +264,11 @@ DESCRIPTION:    Frame object for data
     cpdef uint_fast16_t get_size(DataFrame self):
         return self._message.size
 
-    cpdef void set_data(DataFrame self, vector[string] data):
-        self._message.data = data
+    cpdef void set_data(DataFrame self, list data, bint encoded=False):
+        self._message.data = self.encode_l(data, encoded)
 
-    cpdef vector[string] get_data(DataFrame self):
-        return self._message.data
+    cpdef list get_data(DataFrame self, bint encoded=False):
+        return self.decode_l(self._message.data, encoded)
 
     cpdef void gen_message(DataFrame self, dict params):
         """
@@ -252,10 +278,11 @@ REQUIRES:       self.data [Data payload]
                 self.pack [Package ID]
         """
         try:
-            self._message.pack = <string>params['pack']
-            self._message.data = <vector[string]>params['data']
+            self._message.pack = <string>params['pack'].encode()
+            self._message.data = <vector[string]>self.encode_l(params['data'], encoded=True)
             self._message.size = <uint_fast16_t>params['size']
         except Exception as e:
+            print(str(e))
             self._message.error = b'Missing key parameter'
 
 cdef class TaskFrame(Frame):
@@ -266,12 +293,6 @@ DESCRIPTION:    Frame object for tasks
     def __cinit__(TaskFrame self, uint_fast32_t pack):
         super(TaskFrame, self).__init__(pack)
         self._message = <TaskMessage*>&T_MESSAGE
-        self.message = {
-            'task': '',
-            'args': '',
-            'kwargs': '',
-            'pack': ''
-        }  
         self.digest() 
 
     cpdef TaskMessage get_message(TaskFrame self):
@@ -302,11 +323,11 @@ DESCRIPTION:    Frame object for tasks
     cpdef vector[string] get_args(TaskFrame self):
         return self._message.args
 
-    cpdef void set_kwargs(TaskFrame self, map[string, string] kwargs):
-        self._message.kwargs = kwargs
+    cpdef void set_kwargs(TaskFrame self, dict kwargs):
+        self._message.kwargs = self.encode_d(kwargs)
 
-    cpdef map[string, string] get_kwargs(TaskFrame self):
-        return self._message.kwargs
+    cpdef dict get_kwargs(TaskFrame self):
+        return self.decode_d(self._message.kwargs)
 
     cpdef void set_nargs(TaskFrame self, vector[double] nargs):
         self._message.nargs = nargs
@@ -324,11 +345,11 @@ REQUIRES:       self.task [Name of task to run]
                 self.pack [Package ID]
         """
         try:
-            self._message.task = <string>params['task']
+            self._message.task = <string>params['task'].encode()
             self._message.args = <vector[string]>params['args']
             self._message.nargs = <vector[double]>params['nargs']
-            self._message.kwargs = <map[string, string]>params['kwargs']
-            self._message.pack = <string>params['pack']
+            self._message.kwargs = self.encode_d(params['kwargs'])
+            self._message.pack = <string>params['pack'].encode()
         except Exception as e:
             self._message.error = b'Missing key parameter'
 

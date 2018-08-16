@@ -56,12 +56,13 @@ cdef struct TaskMessage:
     string task
     vector[string] args
     vector[double] nargs
-    map[string, string] kwargs
+    map[char*, char*] kwargs
     string pack
     string error
 
 cdef struct DataMessage:
     vector[string] data
+    #string data
     string pack
     string error
     uint_fast16_t size
@@ -74,15 +75,18 @@ cdef DataMessage D_MESSAGE
 # ------------------------------------------------------------------------ 79->
 cdef class Frame:
     cdef public uint_fast32_t pack
-    cdef public dict message
+    cdef public string message
     cdef public string hash
 
-    cpdef string serialize2(Frame self)
-    cpdef dict deserialize2(Frame self, string s)
+    cdef list decode_l(Frame self, vector[string] v, bint encoded=?)
+    cdef dict decode_d(Frame self, map[char*, char*] m)
+    cdef map[char*, char*] encode_d(Frame self, dict _dict)
+    cdef string _serialize(Frame self, object _dict)
+    cdef vector[string] encode_l(Frame self, list _list, bint encoded=?)
 
     cpdef void load(Frame self, dict message)
     cpdef string serialize(Frame self)
-    cpdef dict deserialize(Frame self, string message)
+    cpdef object deserialize(Frame self, string message)
     cpdef void _pack_frame(Frame self, dict kwargs)
     cpdef void digest(Frame self)
 
@@ -125,8 +129,8 @@ cdef class DataFrame(Frame):
     cpdef void gen_message(DataFrame self, dict params)
     cpdef void set_size(DataFrame self, uint_fast16_t size)
     cpdef uint_fast16_t get_size(DataFrame self)
-    cpdef void set_data(DataFrame self, vector[string] data)
-    cpdef vector[string] get_data(DataFrame self)
+    cpdef void set_data(DataFrame self, list data, bint encoded=?)
+    cpdef list get_data(DataFrame self, bint encoded=?)
 
 cdef class TaskFrame(Frame):
     cdef TaskMessage* _message
@@ -141,8 +145,8 @@ cdef class TaskFrame(Frame):
     cpdef string get_task(TaskFrame self)
     cpdef void set_args(TaskFrame self, vector[string] args)
     cpdef vector[string] get_args(TaskFrame self)
-    cpdef void set_kwargs(TaskFrame self, map[string, string] kwargs)
-    cpdef map[string, string] get_kwargs(TaskFrame self)
+    cpdef void set_kwargs(TaskFrame self, dict kwargs)
+    cpdef dict get_kwargs(TaskFrame self)
     cpdef void gen_message(TaskFrame self, dict params)
     cpdef void set_nargs(TaskFrame self, vector[double] nwargs)
     cpdef vector[double] get_nargs(TaskFrame self)
