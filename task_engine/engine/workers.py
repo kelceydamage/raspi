@@ -46,6 +46,8 @@ from tasks import *
 import time
 import json
 import zmq
+import ujson
+import base64
 
 # Globals
 #-------------------------------------------------------------------------------- <-80
@@ -100,6 +102,7 @@ REQUIRES:       Frame [Frame classtype]
         self.data.set_pack(self.meta.get_pack())
         self.data.set_size(len(response))
         self.data.set_data(response)
+        t = self.data.serialize()
         return [self.meta.serialize(), self.data.serialize()]
 
     def start(self):
@@ -116,16 +119,12 @@ DESCRIPTION:    Start listening for tasks.
             if valid == False:
                 message = self.message(b'ERROR: Invalid request', self.meta.serialize())
             else:
-                meta = MetaFrame(0)
-                meta.load(meta.deserialize(message[0]))
                 self.log(
                     'Received task', 
                     'Package {0}, Chunk {1}'.format(meta.get_serial(), meta.get_part())
                     )
-                #self.log('Received task', meta)
                 response = self.run_task(message[1:])
                 message = self.message(response, meta)
-                #self.log('Task complete', message[0])
             self._socket.send_multipart(message)
             
 
@@ -183,7 +182,7 @@ REQUIRES:       request message [JSON]
             except Exception as e:
                 r = {'job-{0}'.format(frame['pack']): 'ERROR: {0}'.format(e)}
             i += 1
-            response.append(str(r).encode())
+            response.append(r)
         return response
 
 class DataWorker(Worker):
