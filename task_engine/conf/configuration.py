@@ -51,7 +51,7 @@ CHUNKING = True         # Chunking determines if and how much the router breaks 
                         #       activity.
                         # RESPONSE_TIME and CHUNKING should be balanced to get an 
                         # Optimal throughput and worker load balance.   
-CHUNKING_SIZE = 100
+CHUNKING_SIZE = 500
 
 # Logging
 ENABLE_STDOUT = True

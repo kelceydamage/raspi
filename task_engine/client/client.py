@@ -1,13 +1,25 @@
-#!/usr/bin/env python
-#-------------------------------------------------------------------------------- <-80
-# Author: Kelcey Damage
-# Python: 2.7
-
+#!/usr/bin/env python3
+# ------------------------------------------------------------------------ 79->
+# Author: ${name=Kelcey Damage}
+# Python: 3.5+
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
 # Doc
-#-------------------------------------------------------------------------------- <-80
+# ------------------------------------------------------------------------ 79->
 
 # Imports
-#-------------------------------------------------------------------------------- <-80
+# ------------------------------------------------------------------------ 79->
 from __future__ import print_function
 import os
 os.sys.path.append(
@@ -30,11 +42,11 @@ import zmq
 import hashlib
 
 # Globals
-#-------------------------------------------------------------------------------- <-80
+# ------------------------------------------------------------------------ 79->
 VOLUME = 70
 
 # Classes
-#-------------------------------------------------------------------------------- <-80
+# ------------------------------------------------------------------------ 79->
 class TaskClient(object):
     """
     NAME:
@@ -142,9 +154,8 @@ class DataClient(object):
         self.results_queue.append(message)
         print('[CLIENT] recv: {0}'.format(self.results_queue[-1]))
 
-
 # Functions
-#-------------------------------------------------------------------------------- <-80
+# ------------------------------------------------------------------------ 79->
 
 # Main
-#-------------------------------------------------------------------------------- <-80
+# ------------------------------------------------------------------------ 79->

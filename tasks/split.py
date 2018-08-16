@@ -41,17 +41,17 @@ TC = TaskClient('task-split')
 # Functions
 # ------------------------------------------------------------------------ 79->
 def distribute(data, func, kwargs):
-	TC.setup_container(func)
-	TC.insert(func, kwargs=kwargs)
-	TC.send()
+    TC.setup_container(func)
+    TC.insert(func, kwargs=kwargs)
+    TC.send()
 
 def task_split(*args, **kwargs):
-	return kwargs
+    return kwargs
 
 # Main
 # ------------------------------------------------------------------------ 79->
 if __name__ == '__main__':
-	pass
+    pass
 
 
 

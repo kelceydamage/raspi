@@ -43,45 +43,45 @@ CHUNKSIZE = 1024
 # Functions
 # ------------------------------------------------------------------------ 79->
 def distribute(data, func, kwargs):
-	TC.setup_container('chi2')
-	TC.insert(func, kwargs=kwargs)
-	TC.send()
+    TC.setup_container('chi2')
+    TC.insert(func, kwargs=kwargs)
+    TC.send()
 
 def task_custom_chi_square_2d(*args, **kwargs):
-	'''
-	with open('_pairs/metric_combos_1.list', 'rb') as f:
-	r = f.read()
-	z = zlib.decompress(r).decode()
-	'''
+    '''
+    with open('_pairs/metric_combos_1.list', 'rb') as f:
+    r = f.read()
+    z = zlib.decompress(r).decode()
+    '''
 
-	d = zlib.decompressobj(16+zlib.MAX_WBITS)
-	_buffer = []
-	file_name = kwargs['file']
-	print('open file')
-	try:
-		with open(file_name, 'rb') as f:
-			print('read-buffer')
-			buffer = f.read(1024)
-			c = 0
-			#while line:
-			while c < 3:
-				outstr = d.decompress(buffer)
-				print(outstr)
-				buffer.read(CHUNKSIZE)
-				c += 1
-	except Exception as e:
-		return str(e)
+    d = zlib.decompressobj(16+zlib.MAX_WBITS)
+    _buffer = []
+    file_name = kwargs['file']
+    print('open file')
+    try:
+        with open(file_name, 'rb') as f:
+            print('read-buffer')
+            buffer = f.read(1024)
+            c = 0
+            #while line:
+            while c < 3:
+                outstr = d.decompress(buffer)
+                print(outstr)
+                buffer.read(CHUNKSIZE)
+                c += 1
+    except Exception as e:
+        return str(e)
 
-		outstr = d.flush()
-		kwargs = {'pair': data, 'delimiter': ''}
+        outstr = d.flush()
+        kwargs = {'pair': data, 'delimiter': ''}
 
-	#print(args, kwargs)
-	return outstr
+    #print(args, kwargs)
+    return outstr
 
 # Main
 # ------------------------------------------------------------------------ 79->
 if __name__ == '__main__':
-	pass
+    pass
 
 
 

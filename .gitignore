@@ -14,3 +14,5 @@ htmlcov
 *.so
 __pycache__
 .DS_Store
+drivers
+jobs

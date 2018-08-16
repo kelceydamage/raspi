@@ -1,28 +1,25 @@
-#!/usr/bin/env python
-#-------------------------------------------------------------------------------- <-80
-# Author: Kelcey Damage
-# Python: 2.7
-
+#!/usr/bin/env python3
+# ------------------------------------------------------------------------ 79->
+# Author: ${name=Kelcey Damage}
+# Python: 3.5+
+#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-
+#
 #    http://www.apache.org/licenses/LICENSE-2.0
-
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
+#
 # Doc
-#-------------------------------------------------------------------------------- <-80
-"""
-SUMMARY:        Registry of trusted functions for execution
-"""
+# ------------------------------------------------------------------------ 79->
 
 # Imports
-#-------------------------------------------------------------------------------- <-80
+# ------------------------------------------------------------------------ 79->
 import os
 os.sys.path.append(
     os.path.dirname(
@@ -40,12 +37,13 @@ import sys
 import importlib
 
 # Globals
-#-------------------------------------------------------------------------------- <-80
+# ------------------------------------------------------------------------ 79->
 
 # Classes
-#--------------------------------------------------------------------------------<-80
+# ------------------------------------------------------------------------ 79->
+
 # Functions
-#-------------------------------------------------------------------------------- <-80
+# ------------------------------------------------------------------------ 79->
 def load_tasks(dirname):
     """
 NAME:           load_tasks
@@ -67,4 +65,4 @@ DESCRIPTION:    Auto loader and parser for task modules. This function is writte
     return functions
 
 # Main
-#-------------------------------------------------------------------------------- <-80
+# ------------------------------------------------------------------------ 79->
