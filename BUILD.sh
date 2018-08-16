@@ -7,7 +7,7 @@ fi
 
 # precompile c++ modules
 echo -e "PRE_COMPILING PXD\n"
-cython --annotate-coverage coverage.xml $PROJECT.pyx --force --embed --cplus
+cython --annotate-coverage coverage.xml $PROJECT.pyx --force --embed --cplus -I .
 
 # general compile of project modules
 echo -e "RUNNING SETUP.PY\n"
