@@ -66,3 +66,5 @@ DESCRIPTION:    Auto loader and parser for task modules. This function is writte
 
 # Main
 # ------------------------------------------------------------------------ 79->
+if __name__ == '__main__':
+    print(load_tasks('tasks'))

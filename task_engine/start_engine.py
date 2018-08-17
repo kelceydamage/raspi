@@ -90,13 +90,13 @@ NAME:           start_worker
 DESCRIPTION:    Wrapper for starting worker class instances with ProcessHandler
     """
     if args[-1] == 0:
-        print('Starting [ROUTER] on socket: {0}:{1}'.format(args[0], ROUTER_FRONTEND))
+        #print('Starting [ROUTER] on socket: {0}:{1}'.format(args[0], ROUTER_FRONTEND))
         R = Router(pid=pid)
         R.setup_frontend('0.0.0.0', ROUTER_FRONTEND)
         R.setup_backend('0.0.0.0', ROUTER_BACKEND)
         R.start()
     elif args[-1] == 1:
-        print('Starting worker[TASK] on socket: {0}:{1}'.format(args[0], args[1]))
+        #print('Starting worker[TASK] on socket: {0}:{1}'.format(args[0], args[1]))
         TaskWorker(
             host=args[0], 
             port=args[1], 
@@ -106,7 +106,7 @@ DESCRIPTION:    Wrapper for starting worker class instances with ProcessHandler
             functions=args[2],
             ).start()
     elif args[-1] == 2:
-        print('Starting worker[DATA] on socket: {0}:{1}'.format(args[0], args[1]))
+        #print('Starting worker[DATA] on socket: {0}:{1}'.format(args[0], args[1]))
         DataWorker(
             host=args[0], 
             port=args[1],
@@ -158,7 +158,11 @@ def print_meta(functions):
 # Main
 #-------------------------------------------------------------------------------- <-80
 if __name__ == '__main__':
-    functions = load_tasks('/git/projects/cython/personal/raspi/tasks')
+    try:
+        functions = load_tasks('tasks')
+    except Exception as e:
+        print(str(e))
+        quit()
     args = args[0]
     if not args.mode or not args.address:
         if args.meta:
