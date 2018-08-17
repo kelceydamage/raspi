@@ -34,7 +34,29 @@ import json
 # Classes
 #-------------------------------------------------------------------------------- <-80
 class Colours(object):
-	"""docstring for Colours"""
+	"""
+NAME:           Colours
+DESCRIPTION:    Provides templated print colours for printc
+
+self.RED 			= '\033[38;5;1m'
+self.BLUE 			= '\033[38;5;12m'
+self.GREEN 			= '\033[38;5;10m'
+self.CORAL 			= '\033[38;5;9m'
+self.DARKBLUE		= '\033[38;5;4m'
+self.PURPLE			= '\033[38;5;5m'
+self.CYAN			= '\033[38;5;6m'
+self.LIGHTBLUE		= '\033[38;5;14m'
+self.BRED			= '\033[48;5;1m'
+self.BBLUE			= '\033[48;5;12m'
+self.BGREEN			= '\033[48;5;10m'
+self.BCORAL			= '\033[48;5;9m'
+self.BDARKBLUE		= '\033[48;5;4m'
+self.BPURPLE		= '\033[48;5;5m'
+self.BCYAN	     	= '\033[48;5;6m'
+self.BLIGHTBLUE		= '\033[48;5;14m'
+self.BLACK			= '\033[38;5;0m'
+self.ENDC 			= '\033[m'
+	"""
 	def __init__(self):
 		super(Colours, self).__init__()
 		self.RED 			= '\033[38;5;1m'
