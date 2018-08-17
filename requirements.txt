@@ -7,3 +7,4 @@ python-coveralls
 bokeh
 codecov
 coverage
+ujson
