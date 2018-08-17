@@ -28,7 +28,8 @@ os.sys.path.append(
             )
         )
     )
-from task_engine.client.client import distribute
+from common.datatypes import MetaFrame
+from common.datatypes import DataFrame
 from common.print_helpers import Colours
 from common.print_helpers import printc
 
@@ -41,17 +42,20 @@ COLOURS = Colours()
 
 # Functions
 # ------------------------------------------------------------------------ 79->
-def task_split(*args, **kwargs):
-    printc('Starting Task: Split', COLOURS.LIGHTBLUE)
+def task_end(*args, **kwargs):
+    printc('PIPELINE COMPLETE: Termination Task', COLOURS.PURPLE)
     p_serial = kwargs['p_serial']
-    kwargs['data'] = kwargs['data'].split(kwargs['delimiter'])
-    return distribute(
-        func=kwargs['pipeline'].pop(0), 
-        name='split', 
-        kwargs=kwargs,
-        serial=p_serial
-    )
+    meta = MetaFrame(0)
+    meta.set_serial(p_serial)
+    data = DataFrame(0)
+    if isinstance(kwargs['data'], list):
+        data.set_data(kwargs['data'])
+    else:
+        data.set_data([kwargs['data']])
+    return [meta.serialize(), data.serialize()]
 
 # Main
 # ------------------------------------------------------------------------ 79->
+
+
 

@@ -36,6 +36,7 @@ import zlib
 # ------------------------------------------------------------------------ 79->
 TC = TaskClient('task-chi-square-2d')
 CHUNKSIZE = 1024
+COLOURS = Colours()
 
 # Classes
 # ------------------------------------------------------------------------ 79->
@@ -48,35 +49,37 @@ def distribute(data, func, kwargs):
     TC.send()
 
 def task_custom_chi_square_2d(*args, **kwargs):
-    '''
-    with open('_pairs/metric_combos_1.list', 'rb') as f:
-    r = f.read()
-    z = zlib.decompress(r).decode()
-    '''
-
-    d = zlib.decompressobj(16+zlib.MAX_WBITS)
+    print('starting task')
+    d = zlib.decompressobj(zlib.MAX_WBITS|32)
     _buffer = []
     file_name = kwargs['file']
+    file_path = kwargs['path']
+    outstr = b''
     print('open file')
     try:
-        with open(file_name, 'rb') as f:
+        with open('{0}/{1}'.format(file_path, file_name), 'rb') as f:
             print('read-buffer')
             buffer = f.read(1024)
-            c = 0
+            #c = 0
             #while line:
-            while c < 3:
-                outstr = d.decompress(buffer)
-                print(outstr)
-                buffer.read(CHUNKSIZE)
-                c += 1
+            print('decompress')
+            while buffer:
+                #zlib.compress(str_buff)
+                outstr += d.decompress(buffer)
+                buffer = f.read(CHUNKSIZE)
+                #c += 1
     except Exception as e:
+        printc(str(e), COLOURS.RED)
         return str(e)
 
-        outstr = d.flush()
-        kwargs = {'pair': data, 'delimiter': ''}
+    outstr += d.decompress(buffer)
+    out = d.flush()
+    outstr = outstr.decode()
+    outstr = outstr.split('\n')
+    kwargs = {'pair': '', 'delimiter': ''}
 
     #print(args, kwargs)
-    return outstr
+    return len(outstr)
 
 # Main
 # ------------------------------------------------------------------------ 79->

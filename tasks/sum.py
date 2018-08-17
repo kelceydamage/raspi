@@ -41,17 +41,16 @@ COLOURS = Colours()
 
 # Functions
 # ------------------------------------------------------------------------ 79->
-def task_split(*args, **kwargs):
-    printc('Starting Task: Split', COLOURS.LIGHTBLUE)
+def task_sum(*args, **kwargs):
+    printc('Starting Task: Sum', COLOURS.LIGHTBLUE)
     p_serial = kwargs['p_serial']
-    kwargs['data'] = kwargs['data'].split(kwargs['delimiter'])
+    kwargs['data'] = sum(args)
     return distribute(
         func=kwargs['pipeline'].pop(0), 
-        name='split', 
+        name='sum', 
         kwargs=kwargs,
         serial=p_serial
     )
 
 # Main
 # ------------------------------------------------------------------------ 79->
-
