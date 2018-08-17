@@ -55,6 +55,12 @@ DESCRIPTION:
     def __cinit__(Frame self, uint_fast32_t pack):
         self.pack = pack
 
+    cdef string encode(Frame self, string s):
+        return base64.b64encode(s)
+
+    cdef string decode(Frame self, string s):
+        return base64.b64decode(s)
+
     cdef vector[string] encode_l(Frame self, list _list, bint encoded=False):
         cdef vector[string] v
         cdef unsigned long i
@@ -64,7 +70,7 @@ DESCRIPTION:
             if encoded:
                 s = _list[i].encode()
             else:
-                s = base64.b64encode(ujson.dumps(_list[i]).encode())
+                s = self.encode(ujson.dumps(_list[i]).encode())
             v.push_back(s)
         return v
 
@@ -74,19 +80,19 @@ DESCRIPTION:
         cdef unsigned long l = v.size()
         cdef str s
         for i in range(0, l):
-            _list.append(ujson.loads(base64.b64decode(v[i])))
+            _list.append(ujson.loads(self.decode(v[i])))
         return _list
 
-    cdef dict decode_d(Frame self, map[char*, char*] m):
+    cdef dict decode_d(Frame self, map[string, string] m):
         cdef dict _dict = {}
-        cdef pair[char*, char*] p
+        cdef pair[string, string] p
         for p in m:
             _dict[p.first.decode()] = p.second.decode()
         return _dict
 
-    cdef map[char*, char*] encode_d(Frame self, dict _dict):
-        cdef map[char*, char*] _map
-        cdef pair[char*, char*] p
+    cdef map[string, string] encode_d(Frame self, dict _dict):
+        cdef map[string, string] _map
+        cdef pair[string , string] p
         cdef string _k
         cdef string _v
         for k in _dict:
@@ -95,8 +101,8 @@ DESCRIPTION:
                 _v = _dict[k]
             else:
                 _v = _dict[k].encode()
-            p.first = <char*>_k.c_str()
-            p.second = <char*>_v.c_str()
+            p.first = _k
+            p.second = _v
             _map.insert(p)
         return _map
 
@@ -324,10 +330,10 @@ DESCRIPTION:    Frame object for tasks
         return self._message.args
 
     cpdef void set_kwargs(TaskFrame self, dict kwargs):
-        self._message.kwargs = self.encode_d(kwargs)
+        self._message.kwargs = self.encode(ujson.dumps(kwargs).encode())
 
     cpdef dict get_kwargs(TaskFrame self):
-        return self.decode_d(self._message.kwargs)
+        return ujson.loads(self.decode(self._message.kwargs).decode())
 
     cpdef void set_nargs(TaskFrame self, vector[double] nargs):
         self._message.nargs = nargs
@@ -348,7 +354,7 @@ REQUIRES:       self.task [Name of task to run]
             self._message.task = <string>params['task'].encode()
             self._message.args = <vector[string]>params['args']
             self._message.nargs = <vector[double]>params['nargs']
-            self._message.kwargs = self.encode_d(params['kwargs'])
+            self._message.kwargs = <string>params['kwargs'].encode()
             self._message.pack = <string>params['pack'].encode()
         except Exception as e:
             self._message.error = b'Missing key parameter'

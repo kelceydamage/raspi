@@ -56,7 +56,7 @@ cdef struct TaskMessage:
     string task
     vector[string] args
     vector[double] nargs
-    map[char*, char*] kwargs
+    string kwargs
     string pack
     string error
 
@@ -78,9 +78,11 @@ cdef class Frame:
     cdef public string message
     cdef public string hash
 
+    cdef string encode(Frame self, string s)
+    cdef string decode(Frame self, string s)
     cdef list decode_l(Frame self, vector[string] v, bint encoded=?)
-    cdef dict decode_d(Frame self, map[char*, char*] m)
-    cdef map[char*, char*] encode_d(Frame self, dict _dict)
+    cdef dict decode_d(Frame self, map[string, string] m)
+    cdef map[string, string] encode_d(Frame self, dict _dict)
     cdef string _serialize(Frame self, object _dict)
     cdef vector[string] encode_l(Frame self, list _list, bint encoded=?)
 
