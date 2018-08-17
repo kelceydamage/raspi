@@ -113,6 +113,7 @@ DESCRIPTION:    Start listening for tasks.
         self.log('Listener online', '')
         while True:
             message = self._socket.recv_multipart()
+            #print('worker-recv')
             meta = MetaFrame(0)
             meta.load(meta.deserialize(message[0]))
             valid = self.recv_validation(meta, message)
@@ -121,12 +122,11 @@ DESCRIPTION:    Start listening for tasks.
             else:
                 self.log(
                     'Received task', 
-                    'Package {0}, Chunk {1}'.format(meta.get_serial(), meta.get_part())
+                    'Package {0}, Chunk {1} Task'.format(meta.get_serial(), meta.get_part())
                     )
-                response = self.run_task(message[1:])
-                message = self.message(response, meta)
-            self._socket.send_multipart(message)
-            
+                #print('running local task')
+                meta = self.run_task(message[1:], meta)
+            self._socket.send_multipart([meta, self.data.serialize()])
 
     def recv_validation(self, meta, message):
         """
@@ -159,7 +159,22 @@ DESCRIPTION:    Initialize worker.
         self.meta.set_type(b'ACK')
         self.hash = self.task.hash
 
-    def run_task(self, request):
+    def extract_task(self, serial):
+        func = self.task.get_task()
+        args = self.task.get_args()
+        nargs = self.task.get_nargs()
+        kwargs = self.task.get_kwargs()
+        kwargs['p_serial'] = serial
+        return func, args, nargs, kwargs
+
+    def collapse_lineage(self, r_data):
+        self.data.load(self.data.deserialize(r_data))
+        t_data = self.data.get_data()[0]
+        if isinstance(t_data, list) and len(t_data) > 1:
+            self.data.set_data(t_data[1])
+        return self.data.get_data()
+
+    def run_task(self, request, meta):
         """
 NAME:           run_task
 DESCRIPTION:    Return the result of executing the given task
@@ -170,20 +185,22 @@ REQUIRES:       request message [JSON]
         """
         i = 0
         response = []
+        serial = meta.get_serial()
         for item in request:
-            task = TaskFrame(0)
-            task.load(task.deserialize(item))
+            self.task.load(self.task.deserialize(item))
             try:
-                func = task.get_task()
-                args = task.get_args()
-                nargs = task.get_nargs()
-                kwargs = task.get_kwargs()
-                r = {'job-{0}'.format(task.get_pack()): eval(self.functions[func.decode()])(*args, *nargs, **kwargs)}
+                func, args, nargs, kwargs = self.extract_task(serial)
+                j_name = 'job-{0}'.format(self.task.get_pack())
+                r = eval(self.functions[func.decode()])(*args, *nargs, **kwargs)
             except Exception as e:
-                r = {'job-{0}'.format(frame['pack']): 'ERROR: {0}'.format(e)}
+                printc('[RUN TASK]: {0}'.format(str(e)), COLOURS.RED)
+                r = 'ERROR: {0}'.format(e)
             i += 1
-            response.append(r)
-        return response
+            meta = r[0]
+            response.append((j_name, self.collapse_lineage(r[1])))
+        self.data.set_data(response)
+        self.data.set_size(len(response))
+        return meta
 
 class DataWorker(Worker):
     """
