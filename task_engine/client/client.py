@@ -36,14 +36,19 @@ from task_engine.conf.configuration import ROUTER
 from task_engine.conf.configuration import ROUTER_FRONTEND
 from common.datatypes import TaskFrame
 from common.datatypes import MetaFrame
+from common.datatypes import DataFrame
 from common.datatypes import prepare
+from common.print_helpers import Colours
+from common.print_helpers import printc
 import time
 import zmq
 import hashlib
+import collections
 
 # Globals
 # ------------------------------------------------------------------------ 79->
 VOLUME = 70
+COLOURS = Colours()
 
 # Classes
 # ------------------------------------------------------------------------ 79->
@@ -56,10 +61,12 @@ class TaskClient(object):
         super(TaskClient, self).__init__()
         self.task_socket = zmq.Context().socket(zmq.REQ)
         self.task_socket.connect('tcp://{}:{}'.format(ROUTER, ROUTER_FRONTEND))
-        self.queue = []
-        self.results_queue = []
+        self.queue = collections.deque()
+        self.results_queue = collections.deque()
         self.volume = VOLUME
         self.name = name
+        self.meta = MetaFrame(0)
+        self.data = DataFrame(0)
 
     def generate_packing_id(self):
         self.pack = time.time()
@@ -70,10 +77,10 @@ class TaskClient(object):
         elif isinstance(message, bytes):
             return hashlib.md5(''.join(message)).hexdigest().encode()
 
-    def build_task_frame(self, task, args=[], nargs=[], kwargs={}):
+    def build_task_frame(self, func, args=[], nargs=[], kwargs={}):
         Task = TaskFrame(self.pack)
         Task.digest()
-        Task.set_task(task.encode())
+        Task.set_task(func.encode())
         Task.set_args(args)
         Task.set_nargs(nargs)
         Task.set_kwargs(kwargs)
@@ -84,54 +91,50 @@ class TaskClient(object):
         Meta = MetaFrame(self.pack)
         Meta.digest()
         Meta.set_pack(str(self.pack).encode())
-        Meta.set_id(bytes(id, 'utf-8'))
+        Meta.set_id(id)
         Meta.set_version(b'0.1')
         Meta.set_type(b'REQ')
         Meta.set_role(self.name.encode())
         self.meta = Meta
 
-    def task_queue(self):
+    def task_queue(self, serial=None):
         message_hash = self.digest(str(self.queue))
         self.meta.set_length(len(self.queue))
-        self.meta.set_serial(message_hash)
-        envelope = [self.meta.serialize()] + self.queue
-        print("Client Sending...")
-        #print('ENVELOPE: ', envelope)
+        if serial == None:
+            self.meta.set_serial(message_hash)
+        else:
+            self.meta.set_serial(serial)
+        envelope = [self.meta.serialize()] 
+        envelope.extend(self.queue)
+        #print("Client Sending...")
         self.task_socket.send_multipart(envelope)
+        del envelope
         response = self.task_socket.recv_multipart()
-        print("Client Received")
-        self.results_queue.append(response)
+        #print("Client Received")
+        self.results_queue.extend(response)
+        del response
         #print('[CLIENT] recv: {0}'.format(self.results_queue[-1]))
 
-    def setup_container(self, name):
+    def setup_container(self, id):
         self.generate_packing_id()
-        self.build_meta_frame(name)
+        self.build_meta_frame(id)
 
-    def insert(self, task, args=[], nargs=[], kwargs={}):
-        self.build_task_frame(task, args, nargs, kwargs)
+    def insert(self, func, args=[], nargs=[], kwargs={}):
+        self.build_task_frame(func, args, nargs, kwargs)
 
-    def send(self):
-        self.task_queue()
-        self.queue = []
-        self.meta = None
-
-    def deserialize(self, frame):
-        try:
-            return [eval(x.decode(), {"__builtins__":None}, {}) for x in frame]
-        except Exception as e:
-            return frame
+    def send(self, serial=None):
+        self.task_queue(serial)
+        self.queue.clear()
+        self.meta = MetaFrame(0)
 
     def last(self):
-        return self.deserialize(self.results_queue[-1])
+        return self.results_queue[-1]
 
     def get(self):
-        return_queue = []
-        for frame in self.results_queue:
-            return_queue.append(self.deserialize(frame))
-        return return_queue
+        return self.results_queue
 
     def flush(self):
-        self.results_queue = []
+        self.results_queue.clear()
 
 class DataClient(object):
     """
@@ -156,6 +159,41 @@ class DataClient(object):
 
 # Functions
 # ------------------------------------------------------------------------ 79->
-
+def distribute(func=None, name='ANON', kwargs={}, nargs=[], args=[], buffer=[], serial=None):
+    """
+    NAME:           distribute
+    DESCRIPTION:    send data to another task.
+    REQUIRES:       name        - Tag for job owner
+                    func        - The next function in the chain.
+                    kwargs      - Keyword arguments for the next function, 
+                                  and/or functions further down the pipeline 
+                                  chain.
+                    args        - Text arguments
+                    nargs       - Numeric arguments
+                    serial      - Cached serial for routing parent
+                    buffer      - list of functions [optional]
+    REQUIRED KWARGS:
+                    pipeline    - A list of sequential functions in the 
+                                  pipeline
+    """
+    TC = TaskClient(name)
+    TC.setup_container(str(len(buffer)).encode())
+    if func == None and buffer:
+        while buffer:
+            TC.insert(buffer.pop(), kwargs=kwargs, nargs=nargs, args=args)
+    else:
+        TC.insert(func, kwargs=kwargs, nargs=nargs, args=args)
+    TC.send()
+    response = list(TC.get())
+    TC.flush()
+    meta = MetaFrame(0)
+    meta.load(meta.deserialize(response[0]))
+    if serial != None:
+        meta.set_serial(serial)
+    data = DataFrame(0)
+    data.load(data.deserialize(response[1]))
+    printc('Distribute: {0}'.format(name), COLOURS.BLUE)
+    return [meta.serialize(), data.serialize()]
+    
 # Main
 # ------------------------------------------------------------------------ 79->
