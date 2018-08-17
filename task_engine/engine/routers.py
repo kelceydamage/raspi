@@ -121,10 +121,13 @@ REQUIRES:       host [ip/hostname]
         printc('{0}Listener online'.format(padding('[ROUTER-{0}(BACKEND)] '.format(port), PAD)), COLOURS.GREEN)
 
     def ship(self, header, envelope, n):
+        message = []
         self.meta.set_length(len(envelope))
         self.meta.set_part(n)
         meta = self.meta.serialize()
-        message = header + [meta] + envelope
+        message.extend(header)
+        message.append(meta)
+        message.extend(envelope)
         self.backend.send_multipart(message)
 
     def chunk(self, message):
@@ -133,6 +136,7 @@ NAME:           chunk
 DESCRIPTION:    chunk messages to better load balance
 REQUIRES:       message
         """
+        #print('chunking')
         meta = MetaFrame(0)
         meta.load(meta.deserialize(message[2]))
         count = math.ceil(float(len(message[3:])) / CHUNKING_SIZE)
@@ -171,7 +175,7 @@ REQUIRES:       message
                 assert len(data.get_data()) == data.get_size()
             except AssertionError as e:
                 self.log('Forwarding', 'BACKEND', 'Error: {0}'.format(
-                    'Package contents ({0}) less then noted in manifest ({0})'.format(len(data.get_data()), data.get_size())
+                    'Package contents ({0}) less then noted in manifest ({1})'.format(len(data.get_data()), data.get_size())
                 ))
             self.buffer.extend(data.get_data())
             if self.state[meta.get_serial()] == 0:
@@ -188,11 +192,11 @@ REQUIRES:       message
                 self.frontend.send_multipart(message)
                 self.buffer = []
                 del self.state[meta.get_serial()]
-                #self.log('Forwarding', 'BACKEND', 'Shipped: {0}'.format(
-                #    meta.get_serial()
-                #))
+                self.log('Forwarding', 'BACKEND', 'Shipped: {0}'.format(
+                    meta.get_serial()
+                ))
         except Exception as e:
-            print('R-0', str(e))
+            printc('[ASSEMBLER]: {0}'.format(str(e)), COLOURS.RED)
 
     def run_broker(self):
         """
@@ -202,7 +206,7 @@ DESCRIPTION:    Main routing component [loop]
         while True:
             socks = dict(self.poller.poll())
             if socks.get(self.frontend) == zmq.POLLIN:
-                print('router-recv')
+                #print('router-recv')
                 message = self.frontend.recv_multipart()
                 if CHUNKING == True:
                     self.log(
@@ -217,7 +221,7 @@ DESCRIPTION:    Main routing component [loop]
 
             if socks.get(self.backend) == zmq.POLLIN:
                 message = self.backend.recv_multipart()
-                #self.log('Forwarding', 'BACKEND', message[2])
+                self.log('Forwarding', 'BACKEND', message[2])
                 if CHUNKING == True:
                     self.assemble(message)
                 else:
