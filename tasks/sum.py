@@ -28,7 +28,6 @@ os.sys.path.append(
             )
         )
     )
-from task_engine.client.client import distribute
 from common.print_helpers import Colours
 from common.print_helpers import printc
 
@@ -41,16 +40,10 @@ COLOURS = Colours()
 
 # Functions
 # ------------------------------------------------------------------------ 79->
-def task_sum(*args, **kwargs):
+def task_sum(kwargs):
     printc('Starting Task: Sum', COLOURS.LIGHTBLUE)
-    p_serial = kwargs['p_serial']
-    kwargs['data'] = sum(args)
-    return distribute(
-        func=kwargs['pipeline'].pop(0), 
-        name='sum', 
-        kwargs=kwargs,
-        serial=p_serial
-    )
+    result = sum(kwargs['kwargs']['nargs'])
+    return (kwargs['completed'][-1], result)
 
 # Main
 # ------------------------------------------------------------------------ 79->

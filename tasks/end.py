@@ -28,8 +28,6 @@ os.sys.path.append(
             )
         )
     )
-from common.datatypes import MetaFrame
-from common.datatypes import DataFrame
 from common.print_helpers import Colours
 from common.print_helpers import printc
 
@@ -42,17 +40,9 @@ COLOURS = Colours()
 
 # Functions
 # ------------------------------------------------------------------------ 79->
-def task_end(*args, **kwargs):
+def task_end(kwargs):
     printc('PIPELINE COMPLETE: Termination Task', COLOURS.PURPLE)
-    p_serial = kwargs['p_serial']
-    meta = MetaFrame(0)
-    meta.set_serial(p_serial)
-    data = DataFrame(0)
-    if isinstance(kwargs['data'], list):
-        data.set_data(kwargs['data'])
-    else:
-        data.set_data([kwargs['data']])
-    return [meta.serialize(), data.serialize()]
+    return (kwargs['completed'][-1], None)
 
 # Main
 # ------------------------------------------------------------------------ 79->

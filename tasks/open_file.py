@@ -28,14 +28,12 @@ os.sys.path.append(
             )
         )
     )
-from task_engine.client.client import distribute
 from common.print_helpers import Colours
 from common.print_helpers import printc
 import zlib
 
 # Globals
 # ------------------------------------------------------------------------ 79->
-CHUNKSIZE = 4
 COLOURS = Colours()
 
 # Classes
@@ -43,47 +41,19 @@ COLOURS = Colours()
 
 # Functions
 # ------------------------------------------------------------------------ 79->
-def shuffle(file_buffer, kwargs):
-    if kwargs['file_method'] == 'line':
-        print('shuffle: LINE >>>')
-        for line in file_buffer:
-            kwargs['data'] = line
-            distribute(kwargs['pipeline'].pop(0), kwargs=kwargs)
-    elif kwargs['file_method'] == 'file':
-        print('shuffle: FILE >>>')
-        kwargs['data'] = file_buffer
-        distribute(kwargs['pipeline'].pop(0), kwargs=kwargs)
-    else:
-        print('shuffle: ERROR >>>')
-        return file_buffer
-
-def task_open_file(*args, **kwargs):
+def task_open_file(kwargs):
     printc('Starting Task: Open File', COLOURS.LIGHTBLUE)
-    p_serial = kwargs['p_serial']
-    file_name = kwargs['file']
-    file_path = kwargs['path']
-    kwargs['data'] = 'fsffsefsf, fesfe , f sefsefsee'
-    kwargs['delimiter'] = ','
-    return distribute(
-        func=kwargs['pipeline'].pop(0), 
-        name='open_file', 
-        kwargs=kwargs, 
-        serial=p_serial
-        )
-    '''
-    try:
-        with open('{0}/{1}'.format(file_path, file_name), 'rb') as f:
-            r = f.read()
-            z = zlib.decompress(r).decode()
-            if len(kwargs['pipeline']) > 0:
-                return shuffle(z, kwargs)
-            else:
-                return z
-    except Exception as e:
-        print('---')
-        printc(str(e), COLOURS.RED)
-        return str(e)
-    '''
+    file_name = kwargs['kwargs']['file']
+    file_path = kwargs['kwargs']['path']
+    with open('{0}/{1}'.format(file_path, file_name), 'rb') as f:
+        r = f.read()
+        z = zlib.decompress(r).decode()
+    parts = z.split(kwargs['kwargs']['delimiter'])
+    results = []
+    for i in range(len(parts)):
+        results.append((kwargs['completed'][-1], parts.pop().strip('\n')))
+    del parts
+    return results
 
 # Main
 # ------------------------------------------------------------------------ 79->

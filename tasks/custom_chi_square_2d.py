@@ -34,7 +34,6 @@ import zlib
 
 # Globals
 # ------------------------------------------------------------------------ 79->
-TC = TaskClient('task-chi-square-2d')
 CHUNKSIZE = 1024
 COLOURS = Colours()
 
@@ -43,11 +42,6 @@ COLOURS = Colours()
 
 # Functions
 # ------------------------------------------------------------------------ 79->
-def distribute(data, func, kwargs):
-    TC.setup_container('chi2')
-    TC.insert(func, kwargs=kwargs)
-    TC.send()
-
 def task_custom_chi_square_2d(*args, **kwargs):
     print('starting task')
     d = zlib.decompressobj(zlib.MAX_WBITS|32)

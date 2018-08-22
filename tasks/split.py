@@ -28,7 +28,6 @@ os.sys.path.append(
             )
         )
     )
-from task_engine.client.client import distribute
 from common.print_helpers import Colours
 from common.print_helpers import printc
 
@@ -41,16 +40,10 @@ COLOURS = Colours()
 
 # Functions
 # ------------------------------------------------------------------------ 79->
-def task_split(*args, **kwargs):
+def task_split(kwargs):
     printc('Starting Task: Split', COLOURS.LIGHTBLUE)
     p_serial = kwargs['p_serial']
     kwargs['data'] = kwargs['data'].split(kwargs['delimiter'])
-    return distribute(
-        func=kwargs['pipeline'].pop(0), 
-        name='split', 
-        kwargs=kwargs,
-        serial=p_serial
-    )
 
 # Main
 # ------------------------------------------------------------------------ 79->
