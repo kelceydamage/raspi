@@ -2,6 +2,7 @@
 
 ## Dependancies
 * ZMQ
+* ujson
 * Cython
 * SMBus2
 * RPi.GPIO
@@ -21,6 +22,11 @@ sudo apt-get update && sudo apt-get install perl wheel python3-setuptools python
 pip3 install virtualenv
 virtualenv -p $(which python3) myenv
 source myenv/bin/activate
+```
+
+### Installing ujson
+```bash
+pip install ujson
 ```
 
 ### Installing ZMQ
