@@ -94,17 +94,23 @@ DESCRIPTION:    Wrapper for starting worker class instances with ProcessHandler
         R = Router(pid=pid)
         R.setup_frontend('0.0.0.0', ROUTER_FRONTEND)
         R.setup_backend('0.0.0.0', ROUTER_BACKEND)
+        R.setup_publisher('0.0.0.0', ROUTER_PUBLISHER)
         R.start()
     elif args[-1] == 1:
         #print('Starting worker[TASK] on socket: {0}:{1}'.format(args[0], args[1]))
-        TaskWorker(
-            host=args[0], 
-            port=args[1], 
-            pid=pid,
-            dealer=ROUTER, 
-            dealer_port=ROUTER_BACKEND, 
-            functions=args[2],
-            ).start()
+        try:
+            TaskWorker(
+                host=args[0], 
+                port=args[1], 
+                pid=pid,
+                backend=ROUTER, 
+                backend_port=ROUTER_BACKEND, 
+                frontend=ROUTER,
+                frontend_port=ROUTER_FRONTEND,
+                functions=args[2],
+                ).start()
+        except Exception as e:
+            printc(str(e), COLOURS.RED)
     elif args[-1] == 2:
         #print('Starting worker[DATA] on socket: {0}:{1}'.format(args[0], args[1]))
         DataWorker(

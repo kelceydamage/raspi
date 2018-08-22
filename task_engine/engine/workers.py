@@ -36,10 +36,10 @@ os.sys.path.append(
     )
 from task_engine.conf.configuration import ENABLE_STDOUT
 from task_engine.conf.configuration import ENABLE_DEBUG
-from common.datatypes import TaskFrame
-from common.datatypes import MetaFrame
-from common.datatypes import DataFrame
-from common.datatypes import prepare
+from task_engine.conf.configuration import ROUTER_BACKEND
+from common.datatypes import Envelope
+from common.datatypes import Udf
+from common.datatypes import Meta
 from common.print_helpers import printc
 from common.print_helpers import Colours
 from tasks import *
@@ -74,10 +74,21 @@ REQUIRES:       host [ip/hostname]
         self.port = port
         self._context = zmq.Context()
         self.version = VERSION
-        self.data = DataFrame(0)
-        self.task = TaskFrame(0)
-        self.meta = MetaFrame(0)
-        self.meta.set_version(self.version)
+        self.envelope = Envelope()
+
+    def r_log(self, message, header):
+        printc(header, COLOURS.CORAL)
+        print(len(message))
+        for item in message:
+            print('DEBUG: ', item[:160])
+        print('END: ')
+
+    def r_log2(self, message, header):
+        printc(header, COLOURS.GREEN)
+        print(len(message))
+        for item in message:
+            print('DEBUG: ', item[:160])
+        print('END: ')
 
     def log(self, action, message):
         if ENABLE_STDOUT == True:
@@ -88,54 +99,20 @@ REQUIRES:       host [ip/hostname]
                 action
                 ), COLOURS.GREEN) 
 
-    def message(self, response, meta):
-        """
-NAME:           message
-DESCRIPTION:    method for packing a message to be send ready.
-REQUIRES:       Frame [Frame classtype]
-                response [task output]
-        """
-        self.meta.set_serial(meta.get_serial())
-        self.meta.set_part(meta.get_part())
-        self.meta.set_pack(meta.get_pack())
-        self.meta.set_length(1)
-        self.data.set_pack(self.meta.get_pack())
-        self.data.set_size(len(response))
-        self.data.set_data(response)
-        t = self.data.serialize()
-        return [self.meta.serialize(), self.data.serialize()]
-
     def start(self):
         """
 NAME:           start
 DESCRIPTION:    Start listening for tasks.
         """
-        self.log('Listener online', '')
+        print('listener online')
         while True:
-            message = self._socket.recv_multipart()
-            #print('worker-recv')
-            meta = MetaFrame(0)
-            meta.load(meta.deserialize(message[0]))
-            valid = self.recv_validation(meta, message)
-            if valid == False:
-                message = self.message(b'ERROR: Invalid request', self.meta.serialize())
-            else:
-                self.log(
-                    'Received task', 
-                    'Package {0}, Chunk {1} Task'.format(meta.get_serial(), meta.get_part())
-                    )
-                #print('running local task')
-                meta = self.run_task(message[1:], meta)
-            self._socket.send_multipart([meta, self.data.serialize()])
-
-    def recv_validation(self, meta, message):
-        """
-NAME:           recv_validation
-DESCRIPTION:    Validate incoming requests
-        """
-        if meta.get_length() == len(message[1:]):
-            return True
-        return False
+            try:
+                self.envelope.empty()
+                self.envelope.load(self.pull_socket.recv_multipart())
+            except Exception as e:
+                printc('[WORKER] (start): {0}'.format(str(e)), COLOURS.RED)
+            self.run_task()
+            self.push_socket.send_multipart(self.envelope.seal())
 
 class TaskWorker(Worker):
     """
@@ -143,38 +120,21 @@ NAME:           TaskWorker
 DESCRIPTION:    A remote parallel task executor. Child of Worker.
     """
 
-    def __init__(self, host, port, pid, dealer, dealer_port, functions):
+    def __init__(self, host, port, pid, backend, backend_port, frontend, frontend_port, functions):
         super(TaskWorker, self).__init__(host, port)
         """
 NAME:           __init__
 DESCRIPTION:    Initialize worker.
         """
-        self._socket = self._context.socket(zmq.REP)
-        self._socket.connect('tcp://{0}:{1}'.format(dealer, dealer_port))
+        self.pull_socket = self._context.socket(zmq.PULL)
+        self.push_socket = self._context.socket(zmq.PUSH)
+        self.pull_socket.connect('tcp://{0}:{1}'.format(backend, backend_port))
+        self.push_socket.connect('tcp://{0}:{1}'.format(frontend, frontend_port))
         self.functions = functions
         self.type = 'TASK'
         self.pid = pid
-        self.meta.set_role(b'responder')
-        self.meta.set_id('{0}-{1}'.format(self.type, self.pid).encode())
-        self.meta.set_type(b'ACK')
-        self.hash = self.task.hash
 
-    def extract_task(self, serial):
-        func = self.task.get_task()
-        args = self.task.get_args()
-        nargs = self.task.get_nargs()
-        kwargs = self.task.get_kwargs()
-        kwargs['p_serial'] = serial
-        return func, args, nargs, kwargs
-
-    def collapse_lineage(self, r_data):
-        self.data.load(self.data.deserialize(r_data))
-        t_data = self.data.get_data()[0]
-        if isinstance(t_data, list) and len(t_data) > 1:
-            self.data.set_data(t_data[1])
-        return self.data.get_data()
-
-    def run_task(self, request, meta):
+    def run_task(self):
         """
 NAME:           run_task
 DESCRIPTION:    Return the result of executing the given task
@@ -183,24 +143,31 @@ REQUIRES:       request message [JSON]
                 - args
                 - kwargs
         """
-        i = 0
         response = []
-        serial = meta.get_serial()
-        for item in request:
-            self.task.load(self.task.deserialize(item))
+        udf = self.envelope.get_udf()
+        meta = self.envelope.get_meta()
+        func = udf.consume()
+        meta.lifespan -= 1
+        if len(udf.data) > 0:
+            for item in udf.data:
+                try:
+                    container = udf.extract_less()
+                    container['data'] = [item]
+                    r = eval(self.functions[func])(container)
+                except Exception as e:
+                    printc('[WORKER] (run_task_multi): {0}'.format(str(e)), COLOURS.RED)
+                    exit()
+                response.append(r)
+        else:
             try:
-                func, args, nargs, kwargs = self.extract_task(serial)
-                j_name = 'job-{0}'.format(self.task.get_pack())
-                r = eval(self.functions[func.decode()])(*args, *nargs, **kwargs)
+                r = eval(self.functions[func])(udf.extract())
             except Exception as e:
-                printc('[RUN TASK]: {0}'.format(str(e)), COLOURS.RED)
-                r = 'ERROR: {0}'.format(e)
-            i += 1
-            meta = r[0]
-            response.append((j_name, self.collapse_lineage(r[1])))
-        self.data.set_data(response)
-        self.data.set_size(len(response))
-        return meta
+                printc('[WORKER] (run_task): {0}'.format(str(e)), COLOURS.RED)
+                exit()
+            response = r
+        udf.set_data(response)
+        print(len(udf.data))
+        self.envelope.update_contents(meta, udf)
 
 class DataWorker(Worker):
     """

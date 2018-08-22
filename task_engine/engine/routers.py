@@ -37,10 +37,9 @@ os.sys.path.append(
 from conf.configuration import ENABLE_STDOUT
 from conf.configuration import CHUNKING
 from conf.configuration import CHUNKING_SIZE
-from common.datatypes import TaskFrame
-from common.datatypes import MetaFrame
-from common.datatypes import DataFrame
-from common.datatypes import prepare
+from common.datatypes import Envelope
+from common.datatypes import Meta
+from common.datatypes import Udf
 from common.print_helpers import padding
 from common.print_helpers import Colours
 from common.print_helpers import printc
@@ -55,6 +54,7 @@ import math
 VERSION                 = b'0.1'
 PAD                     = 0
 COLOURS                 = Colours()
+CHUNKING = False
 
 # Classes
 #-------------------------------------------------------------------------------- <-80
@@ -64,29 +64,47 @@ NAME:           Router
 DESCRIPTION:    Routes messages to available workers.
     """
     def __init__(self, pid):
+        #print('INIT')
         super(Router, self).__init__()
         context = zmq.Context()
-        self.frontend = context.socket(zmq.ROUTER)
-        self.backend = context.socket(zmq.DEALER)
+        self.frontend = context.socket(zmq.PULL) # ROUTER
+        self.backend = context.socket(zmq.PUSH) # DEALER
+        self.publisher = context.socket(zmq.PUB)
         self.poller = zmq.Poller()
-        self.pid = pid
-        self.state = {'init': self.pid}
-        self.meta = MetaFrame(0)
-        self.data = DataFrame(0)
-        self.meta.digest()
-        self.meta.set_id('ROUTER-{0}'.format(self.pid).encode())
-        self.meta.set_type(b'FWD')
-        self.meta.set_pack(self.meta.hash)
-        self.meta.set_role(b'chunker')
-        self.meta.set_version(VERSION)       
+        self.pid = pid  
+        self.envelope = Envelope()
         self.buffer = []
 
-    def register_peers(self, peers):
+    def run_broker(self):
+        #print('START BROKER')
         """
-NAME:           register_peers
-DESCRIPTION:    Set a property with all local upstream workers
+NAME:           run_broker
+DESCRIPTION:    Main routing component [loop]
         """
-        self.peers = peers
+        while True:
+            try:
+                self.publisher.send_multipart([b'0', b'keepalive'], flags=zmq.NOBLOCK)
+            except Exception as e:
+                print(str(e))
+            socks = dict(self.poller.poll())
+            if socks.get(self.frontend) == zmq.POLLIN:
+                try:
+                    self.envelope.empty()
+                    self.envelope.load(self.frontend.recv_multipart())
+                except Exception as e:
+                    printc('[ROUTER] (run_broker): {0}'.format(str(e)), COLOURS.RED)
+                try:
+                    self.envelope.validate()
+                except Exception as e:
+                    printc('[ROUTER] (run_broker): {0}'.format(str(e)), COLOURS.RED)
+                else:
+                    printc('LIFESPAN: {0}'.format(self.envelope.lifespan), COLOURS.LIGHTBLUE)
+                    if self.envelope.lifespan != 0:
+                        self.backend.send_multipart(self.envelope.seal())
+                        self.publisher.send_multipart([b'0', b'processing'], flags=zmq.NOBLOCK)
+                    else:
+                        printc('[ROUTER] (run_broker): envelope lifespan depleted', COLOURS.RED)
+                        self.publisher.send_multipart(self.envelope.seal())
 
     def setup_frontend(self, host, port, proto='tcp'):
         """
@@ -96,12 +114,15 @@ REQUIRES:       host [ip/hostname]
                 port [numeric port]
                 proto [protocol: tcp, ipc,...]
         """
-        self.frontend.bind('{2}://{0}:{1}'.format(
-            host, 
-            port,
-            proto
-            ))
-        self.poller.register(self.frontend, zmq.POLLIN)
+        try:
+            self.frontend.bind('{2}://{0}:{1}'.format(
+                host, 
+                port,
+                proto
+                ))
+            self.poller.register(self.frontend, zmq.POLLIN)
+        except Exception as e:
+            printc('[ROUTER] (setup_frontend): {0}'.format(str(e)), COLOURS.RED)
         printc('{0}Listener online'.format(padding('[ROUTER-{0}(FRONTEND)] '.format(port), PAD)), COLOURS.GREEN)
 
     def setup_backend(self, host, port, proto='tcp'):
@@ -112,121 +133,34 @@ REQUIRES:       host [ip/hostname]
                 port [numeric port]
                 proto [protocol: tcp, ipc,...]
         """
-        self.backend.bind('{2}://{0}:{1}'.format(
-            host, 
-            port,
-            proto
-            ))
-        self.poller.register(self.backend, zmq.POLLIN)
-        printc('{0}Listener online'.format(padding('[ROUTER-{0}(BACKEND)] '.format(port), PAD)), COLOURS.GREEN)
-
-    def ship(self, header, envelope, n):
-        message = []
-        self.meta.set_length(len(envelope))
-        self.meta.set_part(n)
-        meta = self.meta.serialize()
-        message.extend(header)
-        message.append(meta)
-        message.extend(envelope)
-        self.backend.send_multipart(message)
-
-    def chunk(self, message):
-        """
-NAME:           chunk
-DESCRIPTION:    chunk messages to better load balance
-REQUIRES:       message
-        """
-        #print('chunking')
-        meta = MetaFrame(0)
-        meta.load(meta.deserialize(message[2]))
-        count = math.ceil(float(len(message[3:])) / CHUNKING_SIZE)
-        if count < 1:
-            count = 1
-        self.state[meta.get_serial()] = count
-        self.meta.set_serial(meta.get_serial())
-        self.meta.set_pack(meta.get_pack())
-        header = message[0:2]
-        envelope = []
-        n = 1
-        z = 0
-        for i in range(len(message) - 3):
-            z += 1
-            envelope.append(message[i + 3])
-            if z % CHUNKING_SIZE == 0:
-                self.ship(header, envelope, n)
-                envelope = []
-                n += 1
-        if len(envelope) > 0:
-            self.ship(header, envelope, n)
-
-    def assemble(self, message):
         try:
-            meta = MetaFrame(0)
-            meta.load(meta.deserialize(message[2]))
-            self.state[meta.get_serial()] -= 1
-            self.log('Forwarding', 'BACKEND', 'Assembling: {0}, Part: {1}'.format(
-                meta.get_serial(),
-                self.state[meta.get_serial()]
-                ))
-            header = message[:2]
-            data = DataFrame(0)
-            data.load(data.deserialize(message[3]))
-            try:
-                assert len(data.get_data()) == data.get_size()
-            except AssertionError as e:
-                self.log('Forwarding', 'BACKEND', 'Error: {0}'.format(
-                    'Package contents ({0}) less then noted in manifest ({1})'.format(len(data.get_data()), data.get_size())
-                ))
-            self.buffer.extend(data.get_data())
-            if self.state[meta.get_serial()] == 0:
-                message = []
-                meta.set_role(b'assembler')
-                meta.set_size(len(self.buffer))
-                data = DataFrame(0)
-                data.set_data(self.buffer)
-                data.set_size(len(self.buffer))
-                data.set_pack(meta.get_pack())
-                message.extend(header)
-                message.append(meta.serialize())
-                message.append(data.serialize())
-                self.frontend.send_multipart(message)
-                self.buffer = []
-                del self.state[meta.get_serial()]
-                self.log('Forwarding', 'BACKEND', 'Shipped: {0}'.format(
-                    meta.get_serial()
+            self.backend.bind('{2}://{0}:{1}'.format(
+                host, 
+                port,
+                proto
                 ))
         except Exception as e:
-            printc('[ASSEMBLER]: {0}'.format(str(e)), COLOURS.RED)
+            printc('[ROUTER] (setup_backend): {0}'.format(str(e)), COLOURS.RED)
+        printc('{0}Listener online'.format(padding('[ROUTER-{0}(BACKEND)] '.format(port), PAD)), COLOURS.GREEN)
 
-    def run_broker(self):
+    def setup_publisher(self, host, port, proto='tcp'):
         """
-NAME:           run_broker
-DESCRIPTION:    Main routing component [loop]
+NAME:           setup_backend
+DESCRIPTION:    Configure the frontend socket
+REQUIRES:       host [ip/hostname]
+                port [numeric port]
+                proto [protocol: tcp, ipc,...]
         """
-        while True:
-            socks = dict(self.poller.poll())
-            if socks.get(self.frontend) == zmq.POLLIN:
-                #print('router-recv')
-                message = self.frontend.recv_multipart()
-                if CHUNKING == True:
-                    self.log(
-                        'Chunking: {0}/{1}'.format(len(message[3:]), CHUNKING_SIZE), 
-                        'FRONTEND', 
-                        message[2]
-                        )
-                    self.chunk(message)
-                else:
-                    self.log('Forwarding', 'FRONTEND', message[2])
-                    self.backend.send_multipart(message)
+        try:
+            self.publisher.bind('{2}://{0}:{1}'.format(
+                host, 
+                port,
+                proto
+                ))
+        except Exception as e:
+            printc('[ROUTER] (setup_publisher): {0}'.format(str(e)), COLOURS.RED)
+        printc('{0}publisher online'.format(padding('[ROUTER-{0}(PUBLISHER)] '.format(port), PAD)), COLOURS.GREEN)
 
-            if socks.get(self.backend) == zmq.POLLIN:
-                message = self.backend.recv_multipart()
-                self.log('Forwarding', 'BACKEND', message[2])
-                if CHUNKING == True:
-                    self.assemble(message)
-                else:
-                    self.frontend.send_multipart(message)
-        
     def start(self):
         """
 NAME:
@@ -234,15 +168,6 @@ DESCRIPTION:
         """
         printc('{0}Routing started'.format(padding('[ROUTER-MASTER] ', PAD)), COLOURS.GREEN)
         self.run_broker()
-
-    def log(self, action, service, message):
-        if ENABLE_STDOUT == True:
-            print('[ROUTER-{0}({1})] {3}: {2}'.format(
-                self.pid, 
-                service, 
-                message,
-                action
-                )) 
 
 # Functions
 #-------------------------------------------------------------------------------- <-80
