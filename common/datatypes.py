@@ -28,6 +28,7 @@ import base64
 import ujson
 import collections
 import uuid
+import sys
 
 
 # Globals
@@ -46,33 +47,52 @@ class Tools(object):
         return ujson.loads(base64.b64decode(obj).decode())
 
     @staticmethod
-    def create_header(self, meta):
+    def create_header(meta):
         return hashlib.md5(ujson.dumps(meta).encode()).hexdigest().encode()
 
+    @staticmethod
+    def create_id():
+        return str(uuid.uuid4()).encode()
+
 class Envelope(object):
+    # [header, meta, udf, data]
 
     def __init__(self):
         self.contents = collections.deque(maxlen=4)
         self.lifespan = 0
 
-    def pack(self, header, meta, udf):
+    def pack(self, header, meta, udf, data):
         meta['lifespan'] = len(udf['pipeline'])
+        meta['length'] = len(data)
+        meta['size'] = sys.getsizeof(data)
         self.lifespan = meta['lifespan']
-        [self.contents.append(Tools.serialize(x)) for x in (header, '', meta, udf)]
+        self.length = meta['length']
+        self.size = meta['size']
+        [self.contents.append(Tools.serialize(x)) for x in (header, meta, udf, data)]
+        del header
+        del meta
+        del udf
+        del data
         
     def load(self, contents):
-        [self.contents.append(x) for x in contents if Tools.deserialize(x) != '']
-        self.contents.insert(1, contents[1])
-        self.lifespan = self.get_meta().lifespan
+        [self.contents.append(x) for x in contents]
+        meta = self.get_meta()
+        self.lifespan = meta.lifespan
+        self.length = meta.length
+        self.size = meta.size
         del contents
+        del meta
 
     def open(self):
         return [Tools.deserialize(x) for x in self.contents]
 
+    def unpack(self):
+        return self.get_raw_header(), self.get_meta(), self.get_udf(), self.get_data()
+
     def seal(self):
         return list(self.contents)
 
-    def create_header(self, meta):
+    def create_id(self):
         return str(uuid.uuid4()).encode()
 
     def get_header(self):
@@ -82,20 +102,21 @@ class Envelope(object):
         return Tools.deserialize(self.contents[0])
 
     def get_meta(self):
-        return Meta(Tools.deserialize(self.contents[2]))
+        return Meta(Tools.deserialize(self.contents[1]))
 
     def get_udf(self):
-        return Udf(Tools.deserialize(self.contents[3]))
+        return Udf(Tools.deserialize(self.contents[2]))
 
-    def update_udf(self, udf):
-        self.contents.pop()
-        self.contents.append(Tools.serialize(udf.extract()))
+    def get_data(self):
+        return Tools.deserialize(self.contents[3])
 
-    def update_contents(self, meta, udf):
+    def update_data(self, data):
         self.contents.pop()
-        self.contents.pop()
-        self.contents.append(Tools.serialize(meta.extract()))
-        self.contents.append(Tools.serialize(udf.extract()))
+        self.contents.append(Tools.serialize(data))
+
+    def update_meta(self, meta):
+        self.contents.pop(1)
+        self.contents.insert(Tools.serialize(meta.extract()), 1)
 
     def empty(self):
         self.contents.clear()
@@ -103,8 +124,6 @@ class Envelope(object):
     def validate(self):
         if len(self.contents) != 4:
             raise Exception('[ENVELOPE] (validation): size missmatch')
-        if self.contents[1] != Tools.serialize(''): #b'IiI=':
-            raise Exception('[ENVELOPE] (validation): order missmatch')
 
 class Udf(object):
     '''
@@ -115,28 +134,21 @@ class Udf(object):
     '''
 
     def __init__(self, udf=None):
+        self.kwargs = {}
         self.pipeline = collections.deque()
-        self.data = collections.deque()
         self.completed = collections.deque()
         if udf != None:
-            print('udf-load')
             self.load(udf)
 
     def extract(self):
         return {
             'pipeline': self.pipeline,
-            'data': self.data,
             'completed': self.completed,
             'kwargs': self.kwargs
         }
 
-    def extract_less(self):
-        return {
-            'pipeline': self.pipeline,
-            'data': [],
-            'completed': self.completed,
-            'kwargs': self.kwargs
-        }
+    def empty(self):
+        self.data.clear()
 
     def load(self, udf):
         for k, v in udf.items():
@@ -147,13 +159,6 @@ class Udf(object):
         self.completed.append(current)
         return current
 
-    def set_data(self, data):
-        if isinstance(data, list):
-            for item in data:
-                self.data.append(item)
-        elif isinstance(data, tuple):
-            self.data.append(data)
-
 class Meta(object):
     '''
     Attributes:     size
@@ -162,6 +167,11 @@ class Meta(object):
     '''
     
     def __init__(self, meta=None):
+        self.size = 0
+        self.length = 0
+        self.lifespan = 0
+        self.times = {}
+        self.stage = Tools.create_id()
         if meta != None:
             self.load(meta)
 
@@ -170,7 +180,8 @@ class Meta(object):
             'size': self.size,
             'length': self.length,
             'lifespan': self.lifespan,
-            'times': {}
+            'times': self.times,
+            'stage': self.stage
         }
 
     def load(self, meta):
