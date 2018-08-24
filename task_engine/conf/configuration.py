@@ -28,8 +28,9 @@
 #-------------------------------------------------------------------------------- <-80
 # Workers
 STARTING_PORT = 10000
-TASK_WORKERS = 16       # Worker processes per node (per physical server)
+TASK_WORKERS = 3          # Worker processes per node (per physical server)
 DATA_WORKERS = 1
+CACHE_WORKERS = 1
 RESPONSE_TIME = 0.005   # Controls the rate at which tasks are sent to the workers,
                         # and in doing so, the size of the queue. 
                         # Example: 
@@ -53,6 +54,10 @@ CHUNKING = True         # Chunking determines if and how much the router breaks 
                         # RESPONSE_TIME and CHUNKING should be balanced to get an 
                         # Optimal throughput and worker load balance.   
 CHUNKING_SIZE = 500
+
+# Cache
+CACHE_SERVER = '127.0.0.1'
+CACHE_PORT = 19002
 
 # Logging
 ENABLE_STDOUT = False

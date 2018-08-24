@@ -33,7 +33,7 @@ os.sys.path.append(
         )
     )
 from registry.registry import load_tasks
-from engine.workers import TaskWorker, DataWorker
+from engine.workers import TaskWorker, DataWorker, CacheWorker
 from engine.routers import Router
 from conf.configuration import *
 from common.spawner import ProcessHandler
@@ -54,7 +54,7 @@ group_1 = parser.add_argument_group('Mode Of Operation')
 group_1.add_argument(
     'mode', 
     nargs='?',
-    help='Available modes: ROUTER, TASK, DATA'
+    help='Available modes: ROUTER, TASK, DATA, CACHE'
     )
 group_2 = parser.add_argument_group('Parameters')
 group_2.add_argument(
@@ -119,6 +119,14 @@ DESCRIPTION:    Wrapper for starting worker class instances with ProcessHandler
             pid=pid,
             service='test'
             ).start()
+    elif args[-1] == 3:
+        try:
+            C = CacheWorker(pid=pid)
+            C.setup_router('0.0.0.0', CACHE_PORT)
+            C.start()
+        except Exception as e:
+            printc(str(e), COLOURS.RED)
+        
 
 def gen_services(host, port, mode, functions):
     """
@@ -147,6 +155,11 @@ DESCRIPTION:    Populates the SERVICES list for ProcessHandler
                 raise
             else:
                 SERVICES = _loop(DATA_WORKERS, 2, port, host, functions)
+        elif mode == 'cache':
+            if host == None:
+                raise
+            else:
+                SERVICES = _loop(CACHE_WORKERS, 3, port, host)
     except Exception as e:
         print('Invald options and arguments provided. Unable to start services')
         exit(1)

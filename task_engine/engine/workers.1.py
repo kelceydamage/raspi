@@ -38,7 +38,10 @@ from task_engine.conf.configuration import ENABLE_STDOUT
 from task_engine.conf.configuration import ENABLE_DEBUG
 from task_engine.conf.configuration import ROUTER_BACKEND
 from task_engine.conf.configuration import TASK_WORKERS
-from common.datatypes import *
+from common.datatypes import Envelope
+from common.datatypes import Udf
+from common.datatypes import Tools
+from common.datatypes import Meta
 from common.print_helpers import printc
 from common.print_helpers import padding
 from common.print_helpers import Colours
@@ -78,7 +81,77 @@ REQUIRES:       host [ip/hostname]
         self.host = host
         self.port = port
         self._context = zmq.Context()
-        self.version = VERSION          
+        self.version = VERSION
+        self.envelope = Envelope()
+        self.queue = collections.deque()
+        self.task_queue = Queue()
+
+    def r_log(self, message, header):
+        printc(header, COLOURS.CORAL)
+        print(len(message))
+        for item in message:
+            print('DEBUG: ', item[:160])
+        print('END: ')
+
+    def r_log2(self, message, header):
+        printc(header, COLOURS.GREEN)
+        print(len(message))
+        for item in message:
+            print('DEBUG: ', item[:160])
+        print('END: ')
+
+    def log(self, action, message):
+        if ENABLE_STDOUT == True:
+            printc('[WORKER-{0}({1})] {3}: {2}'.format(
+                self.pid, 
+                self.type, 
+                message,
+                action
+                ), COLOURS.GREEN) 
+
+    def spawn(self):
+        self.proc = Process(target=self.run_task, args=(self.envelope, self.task_queue, self.functions))
+        self.proc.start()
+
+    def start(self):
+        """
+NAME:           start
+DESCRIPTION:    Start listening for tasks.
+        """
+        time.sleep(1)
+        print('listener online {0}'.format(self.pid))
+        INPROC = False
+        tq = ''
+        while True:
+            socks = dict(self.poller.poll(1))
+            if socks.get(self.pull_socket) == zmq.POLLIN:
+                
+                print(self.pid, 'recv')
+                print(self.pid, 'r_queue', len(self.queue))
+                
+                try:
+                    #print(self.mq)
+                    m = self.pull_socket.recv_multipart(flags=zmq.NOBLOCK)
+                    print(m[:3])
+                    #self.rep_socket.send_multipart([b'ack', b'000'])
+                    self.queue.append(m)
+                    #self.envelope.load()
+                except Exception as e:
+                    printc('[WORKER] (start): {0}'.format(str(e)), COLOURS.RED)
+            if len(self.queue) > 0 and not INPROC:
+                INPROC = True
+                self.envelope.empty()
+                self.envelope.load(self.queue.popleft())
+                self.spawn()
+            try:
+                tq = self.task_queue.get(timeout=0.001)
+            except Exception as e:
+                tq = ''
+            if tq != '':
+                self.push_socket.send_multipart(tq.seal(), flags=zmq.NOBLOCK)
+                INPROC = False
+
+                
 
 class TaskWorker(Worker):
     """
@@ -95,40 +168,58 @@ DESCRIPTION:    Initialize worker.
         self.pid = pid
         self.pull_socket = self._context.socket(zmq.PULL)
         self.push_socket = self._context.socket(zmq.PUSH)
-        self.pull_socket.connect('tcp://{0}:{1}'.format(backend, backend_port))
-        self.push_socket.connect('tcp://{0}:{1}'.format(frontend, frontend_port))
+        self.pub_socket = self._context.socket(zmq.PUB)
+        self.rep_socket = self._context.socket(zmq.REP)
+        self.poller = zmq.Poller()
+        try:
+            self.pull_socket.connect('tcp://{0}:{1}'.format(backend, backend_port))
+            self.push_socket.connect('tcp://{0}:{1}'.format(frontend, frontend_port))
+            self.rep_socket.connect('tcp://{0}:{1}'.format(backend, 19200))
+            printc('[WORKER-{0}]: connected to router'.format(self.pid), COLOURS.GREEN)
+        except Exception as e:
+            printc('[WORKER-{0}]: {1}'.format(self.pid, str(e)), COLOURS.RED)
+        self.poller.register(self.pull_socket, zmq.POLLIN)
         self.functions = functions
         self.type = 'TASK'
 
-    def receive(self):
-        envelope = Envelope()
-        envelope.load(self.pull_socket.recv_multipart())
-        return envelope
-
-    def start(self):
-
-        while True:
-            envelope = self.receive()
-            if envelope.lifespan > 0:
-                envelope = self.run_task(envelope)
-            else:
-                raise Exception('Rounting Error, envelope has no lifespan')
-            #print('worker-{0} <---'.format(self.pid))
-            time.sleep(0.001)
-            self.push_socket.send_multipart(envelope.seal())
-
-    def run_task(self, envelope):
-        header, meta, udf, data = envelope.unpack()
+    def run_task(self, envelope, queue, functions):
+        """
+NAME:           run_task
+DESCRIPTION:    Return the result of executing the given task
+REQUIRES:       request message [JSON]
+                - task
+                - args
+                - kwargs
+        """
+        response = []
+        udf = envelope.get_udf()
+        meta = envelope.get_meta()
         func = udf.consume()
-        kwargs = udf.extract()
-        kwargs['data'] = data
-        kwargs['worker'] = self.pid
-        try:
-            r = eval(self.functions[func])(kwargs)
-        except Exception as e:
-            raise Exception(e)
-        envelope.pack(header, meta.extract(), udf.extract(), r)
-        return envelope
+        meta.lifespan -= 1
+        printc('Starting Task: {0}'.format(func.replace('_', ' ')), COLOURS.LIGHTBLUE)
+        if len(udf.data) > 0:
+            for item in udf.data:
+                try:
+                    container = udf.extract_less()
+                    container['data'] = [item]
+                    r = eval(functions[func])(container)
+                except Exception as e:
+                    printc('[WORKER] (run_task_multi): {0}'.format(str(e)), COLOURS.RED)
+                    exit()
+                if r[1] != None:
+                    response.append(r)
+        else:
+            try:
+                r = eval(functions[func])(udf.extract())
+            except Exception as e:
+                printc('[WORKER] (run_task): {0}'.format(str(e)), COLOURS.RED)
+                exit()
+            response = r
+        udf.set_data(response)
+        print(len(udf.data))
+        envelope.update_contents(meta, udf)
+        print('put in q')
+        queue.put(envelope)
 
 class CacheWorker(Worker):
     """

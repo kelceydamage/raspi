@@ -35,7 +35,10 @@ from task_engine.conf.configuration import RESPONSE_TIME
 from task_engine.conf.configuration import ROUTER
 from task_engine.conf.configuration import ROUTER_FRONTEND
 from task_engine.conf.configuration import ROUTER_PUBLISHER
+from task_engine.conf.configuration import CACHE_SERVER
+from task_engine.conf.configuration import CACHE_PORT
 from common.datatypes import Envelope
+from common.datatypes import Tools
 from common.print_helpers import Colours
 from common.print_helpers import printc
 import zmq
@@ -92,6 +95,29 @@ class TaskClient(object):
         self.envelope.load(self.poll())
         self.cleanup()
         return self.envelope
+
+class CacheClient(object):
+    def __init__(self):
+        try:
+            self.req_addr = 'tcp://{}:{}'.format(CACHE_SERVER, CACHE_PORT)
+            self.req_socket = zmq.Context().socket(zmq.REQ)
+            self.req_socket.connect(self.req_addr)
+        except Exception as e:
+            printc('[CACHE_CLIENT]: (__init__) {0}'.format(str(e)), COLOURS.RED)
+
+    def send(self, message):
+        msg = [Tools.serialize(x) for x in message]
+        try:
+            self.req_socket.send_multipart(msg)
+        except Exception as e:
+            printc('[CACHE_CLIENT]: (send) {0}'.format(str(e)), COLOURS.RED)
+        while True:
+            try:
+                r = self.req_socket.recv_multipart()
+            except Exception as e:
+                print(str(e))
+            break
+        return Tools.deserialize(r[0])
 
 # Functions
 # ------------------------------------------------------------------------ 79->
