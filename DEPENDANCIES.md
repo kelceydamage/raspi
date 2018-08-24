@@ -66,7 +66,7 @@ sudo yum install zeromq-devel-4.1.4-5.el7.x86_64 zeromq-4.1.4-5.el7.x86_64
 
 ### Virtual Environment
 ```bash
-pip3 install virtualenv
-virtualenv -p $(which python3) myenv
-source myenv/bin/activate
+pip3.6 install virtualenv
+virtualenv -p $(which python3.6) python36
+source python36/bin/activate
 ```
