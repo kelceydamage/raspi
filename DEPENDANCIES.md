@@ -71,3 +71,11 @@ cd ~
 virtualenv -p $(which python3.6) python36
 source python36/bin/activate
 ```
+
+### Required (within virtual env)
+```
+pip install ujson
+pip install pyzmq
+pip install cython
+pip install lmdb
+```
