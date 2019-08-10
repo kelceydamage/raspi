@@ -9,8 +9,8 @@
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 # RASPI Robot OS
 
-##Functionality
-###Installation
+## Functionality
+### Installation
 To install run: `pip install raspi --upgrade .` from the project root directory.
 
 Or run: `pip install --upgrade git+https://github.com/kelceydamage/raspi.git@master`
