@@ -1,0 +1,9 @@
+pytest-cov
+python-coveralls
+codecov
+coverage
+cbor
+numpy
+cython
+sklearn
+ujson
