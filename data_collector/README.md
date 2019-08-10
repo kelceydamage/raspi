@@ -1,3 +1,0 @@
-# Data Collector
-
-### More to follow....

@@ -1,3 +1,0 @@
-# Task Operator
-
-### More to follow....

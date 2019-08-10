@@ -1,6 +1,0 @@
-[
-  "test_drive.py::test_configure",
-  "test_drive.py::test_polarity",
-  "test_drive.py::test_acceleration",
-  "test_drive.py::test_move"
-]

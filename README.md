@@ -1,98 +1,16 @@
-[![Build Status](https://travis-ci.com/kelceydamage/raspi.svg?branch=master)](https://travis-ci.com/kelceydamage/raspi) [![Coverage Status](https://coveralls.io/repos/github/kelceydamage/raspi/badge.svg?branch=master)](https://coveralls.io/github/kelceydamage/raspi?branch=master) [![codecov](https://codecov.io/gh/kelceydamage/raspi/branch/master/graph/badge.svg)](https://codecov.io/gh/kelceydamage/raspi) [![Code Health](https://landscape.io/github/kelceydamage/raspi/master/landscape.svg?style=flat)](https://landscape.io/github/kelceydamage/raspi/master) [![Maintainability](https://api.codeclimate.com/v1/badges/42632ab235c93a5b0c58/maintainability)](https://codeclimate.com/github/kelceydamage/raspi/maintainability) [![Test Coverage](https://api.codeclimate.com/v1/badges/42632ab235c93a5b0c58/test_coverage)](https://codeclimate.com/github/kelceydamage/raspi/test_coverage)
+![logo](https://github.com/kelceydamage/rtl/blob/master/docs/logo.png?raw=true)
 
-# Raspi 
-Raspi is a library of light-weight services for programming Raspberry Pi's.
+[![Build Status](https://travis-ci.org/kelceydamage/raspi.svg?branch=3-experimental)](https://travis-ci.org/kelceydamage/raspi)
+[![Known Vulnerabilities](https://snyk.io//test/github/kelceydamage/raspi-tasks/badge.svg?targetFile=requirements.txt)](https://snyk.io//test/github/kelceydamage/raspi?targetFile=requirements.txt)
+[![codebeat badge](https://codebeat.co/badges/c46459c3-7075-4baf-8486-80d21b168ca8)](https://codebeat.co/projects/github-com-kelceydamage-raspi-master)
+[![Maintainability](https://api.codeclimate.com/v1/badges/f2cd5d6e36b090b0b552/maintainability)](https://codeclimate.com/github/kelceydamage/raspi/maintainability)
+[![Test Coverage](https://api.codeclimate.com/v1/badges/f2cd5d6e36b090b0b552/test_coverage)](https://codeclimate.com/github/kelceydamage/raspi/test_coverage)
+[![Python 3.6](https://img.shields.io/badge/python-3.6-blue.svg)](https://www.python.org/downloads/release/python-360/)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+# RASPI Robot OS
 
-The goal of the `Raspi` platform is to create an extensable, scalable, hardware automation platform capable of realtime evaluation of it's state. The platform should be runnable on a single Raspberry Pi with exceptable performance, and scalable to a multiple Pi scenario sharing co-state and 'work-together' task orientation.
+##Functionality
+###Installation
+To install run: `pip install raspi --upgrade .` from the project root directory.
 
-### Dependancies for operation
-* [Dependancies](./DEPENDANCIES.md)
-
-### Development considerations
-* [Development](./DEVELOPMENT.md)
-
-### Some early design considerations
-* The initial hardware platform is Pi3
-  * Using MegaPi industrial for DC motor drive
-  * Using GrovePi for instrumentation expansion
-* ARMv7 Processor rev 4 (v7l)
-* Each component of `Raspi` should be self contained and plug-in replaceable/extensible. For lack or a better term, isolated/containerized.
-* intercommunication message serialization to start off as JSON, but will move to msgpack if necessary.
-* Optimization should be on memory footprint
-* Performance goal is 1.5x operational speed requirements, 1 second allowance for task response-time
-* Python based for easy IO interaction with hardware components
-
-## Contents
-
-### Currently contains
-
-```bash
-task_engine:        Based on ZMQ, the primary orchestrator for handling both REQ => REP for
-                    task automation, and PUB => SUB for sensor data retrieval.
-```
-
-### In progress
-
-```bash
-data_collector:     Micro daemon collective for streaming sensor data to task_engine 
-                    subscribers.
-
-data_store:         Light-weight storage system for state samples and subscriber for 
-                    task_engine publishers.
-
-hive_link:          Interlink service to share state and operations between task_engines.
-
-task_operator:      Requestor for task execution, and interface for AI or remote-ops to
-                    request task execution. Most likely based on Flask.
-
-ai:                 High-level controller of sub_routines, such as pathfinding, and servo 
-                    feedback control. Primary client for task_operator.
-
-tasks:              Library of registered tasks, or system capabilities.
-
-touch_ui:           Interface for 7-inch touch-screen. Most likely based on TK.
-
-monitoring:         Data-visualization page for observing application.
-```
-
-## Relationships
-```bash                              
-                                               sub_routines 
-                                                    | ________ analysis
-                                                    |/   
-                                                    | ________ motor_drive
-                                                    |/
-                                               tasks (code_modules)
-                                                    |
-                                                    | ________ data_store
-                                                    |/
-                ai _____> task_operator _____> task_engine [a] <_____ data_collector [Sensors]
-                               /|                  ||   
-                              / |                  ||
-                             /  |              hive_link
-                            /   |                  ||
-                           /    |                  ||
-                          /     |              task_engine [b, ...]
-touch_screen ______> touch_ui   |
-                                |
-                                |
-                                |                 
-                                |
-                                | 
-            browser ______> monitoring
-```
-
-## Non-Core Libraries 
-```bash
-pyzmq
-```
-
-## Interaction Specification v0.1
-
-| Service | Port | Notes |
-|---------|------|-------|
-|task_engine: workers|random-port| task_engine will assign a random port to workers since they register directly to the routers DEALER|
-|router: frontend|9000||
-|router: backend|9001||
-
-### More to follow...
+Or run: `pip install --upgrade git+https://github.com/kelceydamage/raspi.git@master`
