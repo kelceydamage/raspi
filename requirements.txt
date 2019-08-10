@@ -2,8 +2,10 @@ pytest-cov
 python-coveralls
 codecov
 coverage
+cython
+RPi.GPIO
+smbus2
+bokeh
+ujson
 cbor
 numpy
-cython
-sklearn
-ujson
